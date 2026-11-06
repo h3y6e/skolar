@@ -1,20 +1,20 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 330" width="900" height="330" role="img" aria-labelledby="t d">
-  <title id="t">Time to update installed skills</title>
-  <desc id="d">repeat run: skolar 0.15 s · skills 0.60 s. Median wall time of 5 runs on linux/amd64 · AMD EPYC 7763 64-Core Processor                 with skolar d8b9378 · skills 1.7.1 · gh skill 2.102.0; a first run starts from an empty cache, a repeat run from the cache the first one filled.
-install into a skills-lock.json project, skolar: 0.16 s repeat run, 0.88 s first run
-install into a skills-lock.json project, skills: 1.20 s repeat run, 1.47 s first run
-install into a gh skill directory, skolar: 0.11 s repeat run, 0.66 s first run
-install into a gh skill directory, gh skill: 1.89 s repeat run, 1.79 s first run
-update a skills-lock.json project, skolar: 0.15 s repeat run, 0.55 s first run
-update a skills-lock.json project, skills: 0.60 s repeat run, 0.95 s first run
-update a gh skill directory, skolar: 0.10 s repeat run, 0.34 s first run
-update a gh skill directory, gh skill: 0.59 s repeat run, 0.62 s first run
+  <title id="t">インストール済みスキルの更新時間</title>
+  <desc id="d">2 回目以降: skolar 0.20 s · skills 0.48 s。linux/amd64 · AMD EPYC 9V74 80-Core Processor                 上で skolar 67a8de4 · skills 1.7.1 · gh skill 2.103.3 を使い、5 回実行した実時間の中央値。初回は空のキャッシュから、2 回目以降は初回が埋めたキャッシュから始める。
+skills-lock.json プロジェクトへのインストール、skolar: 2 回目以降 0.20 s、初回 0.58 s
+skills-lock.json プロジェクトへのインストール、skills: 2 回目以降 0.65 s、初回 0.79 s
+gh skill ディレクトリへのインストール、skolar: 2 回目以降 0.21 s、初回 0.52 s
+gh skill ディレクトリへのインストール、gh skill: 2 回目以降 1.84 s、初回 2.03 s
+skills-lock.json プロジェクトの更新、skolar: 2 回目以降 0.20 s、初回 0.57 s
+skills-lock.json プロジェクトの更新、skills: 2 回目以降 0.48 s、初回 0.52 s
+gh skill ディレクトリの更新、skolar: 2 回目以降 0.17 s、初回 0.48 s
+gh skill ディレクトリの更新、gh skill: 2 回目以降 0.67 s、初回 0.65 s
 </desc>
   <style>
-    text { white-space: pre; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif; font-size: 13px; fill: #57575a; }
-    .mono, .corner { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+    text { white-space: pre; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, "Hiragino Sans", "Noto Sans JP", "Yu Gothic", Meiryo, sans-serif; font-size: 13px; fill: #57575a; }
+    .mono, .corner { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace, "Hiragino Sans", "Noto Sans JP", "Yu Gothic", Meiryo; }
     .mono { font-size: 11.5px; }
-    .corner { font-size: 10.5px; letter-spacing: .1em; fill: #8c8c90; }
+    .corner { font-size: 10.5px; letter-spacing: .05em; fill: #8c8c90; }
     .muted { fill: #8c8c90; }
     .h { font-size: 14px; font-weight: 600; fill: #18181a; }
     .card { fill: #fbfbfa; stroke: #8a8a8f; stroke-width: .6; }
@@ -38,31 +38,31 @@ update a gh skill directory, gh skill: 0.59 s repeat run, 0.62 s first run
     }
   </style>
   <rect class="card" x=".5" y=".5" width="899" height="329"/>
-  <text class="corner" x="34" y="44">skolar d8b9378 · skills 1.7.1 · gh skill 2.102.0</text>
-  <text class="corner" x="806" y="44" text-anchor="end">REPEAT</text>
-  <text class="corner" x="866" y="44" text-anchor="end">FIRST</text>
-  <text class="h" x="34" y="84">update a skills-lock.json project</text>
+  <text class="corner" x="34" y="44">skolar 67a8de4 · skills 1.7.1 · gh skill 2.103.3</text>
+  <text class="corner" x="806" y="44" text-anchor="end">2 回目以降</text>
+  <text class="corner" x="866" y="44" text-anchor="end">初回</text>
+  <text class="h" x="34" y="84">skills-lock.json プロジェクトの更新</text>
   <text class="mono" x="34" y="108">skolar</text>
-  <rect class="band" x="200" y="98" width="285" height="12" rx="3"/>
-  <rect class="skolar" x="200" y="98" width="77" height="12" rx="3"/>
-  <text class="mono value" x="806" y="108" text-anchor="end">0.15 s</text>
-  <text class="mono muted" x="866" y="108" text-anchor="end">0.55 s</text>
+  <rect class="band" x="200" y="98" width="295" height="12" rx="3"/>
+  <rect class="skolar" x="200" y="98" width="101" height="12" rx="3"/>
+  <text class="mono value" x="806" y="108" text-anchor="end">0.20 s</text>
+  <text class="mono muted" x="866" y="108" text-anchor="end">0.57 s</text>
   <text class="mono" x="34" y="134">skills</text>
-  <rect class="band" x="200" y="124" width="492" height="12" rx="3"/>
-  <rect class="other" x="200" y="124" width="310" height="12" rx="3"/>
-  <text class="mono" x="806" y="134" text-anchor="end">0.60 s</text>
-  <text class="mono muted" x="866" y="134" text-anchor="end">0.95 s</text>
-  <text class="h" x="34" y="168">update a gh skill directory</text>
+  <rect class="band" x="200" y="124" width="270" height="12" rx="3"/>
+  <rect class="other" x="200" y="124" width="248" height="12" rx="3"/>
+  <text class="mono" x="806" y="134" text-anchor="end">0.48 s</text>
+  <text class="mono muted" x="866" y="134" text-anchor="end">0.52 s</text>
+  <text class="h" x="34" y="168">gh skill ディレクトリの更新</text>
   <text class="mono" x="34" y="192">skolar</text>
-  <rect class="band" x="200" y="182" width="175" height="12" rx="3"/>
-  <rect class="skolar" x="200" y="182" width="52" height="12" rx="3"/>
-  <text class="mono value" x="806" y="192" text-anchor="end">0.10 s</text>
-  <text class="mono muted" x="866" y="192" text-anchor="end">0.34 s</text>
+  <rect class="band" x="200" y="182" width="251" height="12" rx="3"/>
+  <rect class="skolar" x="200" y="182" width="90" height="12" rx="3"/>
+  <text class="mono value" x="806" y="192" text-anchor="end">0.17 s</text>
+  <text class="mono muted" x="866" y="192" text-anchor="end">0.48 s</text>
   <text class="mono" x="34" y="218">gh skill</text>
-  <rect class="band" x="200" y="208" width="322" height="12" rx="3"/>
-  <rect class="other" x="200" y="208" width="306" height="12" rx="3"/>
-  <text class="mono" x="806" y="218" text-anchor="end">0.59 s</text>
-  <text class="mono muted" x="866" y="218" text-anchor="end">0.62 s</text>
+  <rect class="band" x="200" y="208" width="337" height="12" rx="3"/>
+  <rect class="other" x="200" y="208" width="347" height="12" rx="3"/>
+  <text class="mono" x="806" y="218" text-anchor="end">0.67 s</text>
+  <text class="mono muted" x="866" y="218" text-anchor="end">0.65 s</text>
   <line class="rule" x1="200" x2="720" y1="252" y2="252"/>
   <path class="rule" d="M 200 252 V 260"/><text class="mono muted" x="200" y="274" text-anchor="middle">0.0 s</text>
   <path class="rule" d="M 252 252 V 256"/>
@@ -76,9 +76,9 @@ update a gh skill directory, gh skill: 0.59 s repeat run, 0.62 s first run
   <path class="rule" d="M 668 252 V 256"/>
   <path class="rule" d="M 720 252 V 260"/><text class="mono muted" x="720" y="274" text-anchor="middle">1.0 s</text>
   <g transform="translate(34 306)">
-    <rect class="skolar" width="12" height="12" rx="3" y="-10"/><text class="corner" x="18">SKOLAR</text>
-    <rect class="other" width="12" height="12" rx="3" y="-10" x="96"/><text class="corner" x="114">OTHER TOOL</text>
-    <rect class="band" width="12" height="12" rx="3" y="-10" x="214"/><text class="corner" x="232">FIRST RUN</text>
+    <rect class="skolar" width="12" height="12" rx="3" y="-10"/><text class="corner" x="18">skolar</text>
+    <rect class="other" width="12" height="12" rx="3" y="-10" x="96"/><text class="corner" x="114">他のツール</text>
+    <rect class="band" width="12" height="12" rx="3" y="-10" x="196"/><text class="corner" x="214">初回</text>
   </g>
   <text class="corner" x="866" y="306" text-anchor="end">linux/amd64</text>
 </svg>
