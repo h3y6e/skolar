@@ -27,7 +27,7 @@ jobs:
         with:
           token: ${{ steps.app-token.outputs.token }}
           persist-credentials: false
-      - uses: ./.github/actions/setup-nix
+      - uses: jdx/mise-action@b44d12e7d0d8ee7461bb893e1b1993500433185b # v5.2.7
       - id: tagpr
         uses: Songmu/tagpr@967f2ab22be958948fb5bd439bfa3d404dd9dee8 # v1.21.1
         env:
@@ -47,9 +47,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
-      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
-        with:
-          go-version-file: go.mod
+      - uses: jdx/mise-action@b44d12e7d0d8ee7461bb893e1b1993500433185b # v5.2.7
       - uses: goreleaser/goreleaser-action@f06c13b6b1a9625abc9e6e439d9c05a8f2190e94 # v7.2.3
         with:
           args: release --clean
@@ -60,6 +58,8 @@ jobs:
           tag: ${{ needs.tagpr.outputs.tag }}
           artifacts: dist/skolar_*.tar.gz dist/skolar_*.zip
           bin: skolar
+          resources: |
+            cli-spec/usage=exec:skolar --usage-spec
       - run: gh release edit "$TAG" --draft=false
         env:
           GH_TOKEN: ${{ github.token }}
