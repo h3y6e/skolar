@@ -1,59 +1,56 @@
 # skolar
 
-Manage local [agent skills](https://agentskills.io) from git repos.
-Reads and writes both [vercel-labs/skills](https://github.com/vercel-labs/skills) lockfiles and [`gh skill`](https://cli.github.com/manual/gh_skill) metadata.
+プロジェクトで使う [Agent Skills](https://agentskills.io) を git リポジトリから取り込んで管理する。
+[vercel-labs/skills](https://github.com/vercel-labs/skills) のロックファイルと [`gh skill`](https://cli.github.com/manual/gh_skill) のメタデータをどちらも読み書きする。
 
-![skolar reads and writes both the vercel-labs/skills lockfile and gh skill metadata](docs/flow.svg)
+![skolar は vercel-labs/skills のロックファイルと gh skill のメタデータを両方読み書きする](docs/flow.svg)
 
-## Why
+## インストール
 
-- Version-control skills from external repositories, say in your dotfiles
-- Selectively install only the skills you need
-- See which skills changed, moved, or disappeared upstream before applying
-
-## Install
-
-Install with [mise](https://mise.en.dev):
+[mise](https://mise.en.dev) でインストール
 
 ```sh
 mise use -g packslip:github.com/h3y6e/skolar
 ```
 
-Or with `go install`:
+または `go install` でインストール
 
 ```sh
 go install github.com/h3y6e/skolar@latest
 ```
 
-Or download a binary from [Releases](https://github.com/h3y6e/skolar/releases).
+または [Releases](https://github.com/h3y6e/skolar/releases) からバイナリをダウンロードする。
 
-## Usage
+## 使い方
 
 ```sh
-skolar add h3y6e/spec-skills                 # latest release, else default branch
-skolar add h3y6e/spec-skills#main            # pin a ref
-skolar add -s 'spec-*' h3y6e/spec-skills     # only some skills
-skolar add -d dot_agents/exact_skills ...    # another directory (default .agents/skills)
+skolar add h3y6e/spec-skills                 # 最新リリース (なければデフォルトブランチ)
+skolar add h3y6e/spec-skills#main            # ref を固定する
+skolar add -s 'spec-*' h3y6e/spec-skills     # 一部のスキルだけ
+skolar add -d dot_agents/exact_skills ...    # 別のディレクトリ（既定は .agents/skills）
 skolar list
-skolar update                                # review what changed upstream, then confirm
-skolar verify                                # check files on disk against the record
+skolar update                                # 上流の変更を確認してから適用する
+skolar verify                                # ディスク上のファイルを記録と照合する
 skolar remove spec-plan
 ```
 
-## Formats
+## 記録の形式
 
-skolar records each skill in `gh skill` metadata in its `SKILL.md`, so `gh skill` manages it too. Beside a `skills-lock.json`, `.agents/skills` keeps using the lockfile, so vercel-labs/skills manages it too.
+skolar はインストールしたスキルの取得元を記録し、update や verify に使う。記録先は次のどちらかになる。
 
-## Interop
+- 通常は各スキルの `SKILL.md` に `gh skill` と同じ形式のメタデータとして書き込む
+- `skills-lock.json` のあるプロジェクトの `.agents/skills` では、vercel-labs/skills と同じロックファイルに書き込む
 
-### Compatibility
+## 他のツールとの併用
 
-![Which interop cases skolar passes alongside vercel-labs/skills and gh skill](docs/compat.svg)
+### 互換性
 
-### Benchmark
+![vercel-labs/skills や gh skill と併用したときに skolar が通るケース](docs/compat.svg)
 
-![Time skolar, vercel-labs/skills, and gh skill take to update installed skills](docs/bench.svg)
+### ベンチマーク
 
-## License
+![インストール済みスキルの更新に skolar、vercel-labs/skills、gh skill がかかる時間](docs/bench.svg)
+
+## ライセンス
 
 [MIT](LICENSE)

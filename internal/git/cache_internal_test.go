@@ -14,7 +14,7 @@ import (
 func TestLock(t *testing.T) {
 	t.Parallel()
 
-	t.Run("when another holder keeps the lock, waiting for it ends with the context", func(t *testing.T) {
+	t.Run("他の保持者がロックを保持しているとき、ロックを待つとコンテキストの終了で打ち切られる", func(t *testing.T) {
 		t.Parallel()
 
 		// Arrange
@@ -43,7 +43,7 @@ func TestLock(t *testing.T) {
 func TestCacheRepo(t *testing.T) {
 	t.Parallel()
 
-	t.Run("when a repository is opened, only the owner may enter the cache", func(t *testing.T) {
+	t.Run("リポジトリを開いたとき、キャッシュは所有者だけが入れる", func(t *testing.T) {
 		t.Parallel()
 
 		// Arrange
@@ -63,7 +63,7 @@ func TestCacheRepo(t *testing.T) {
 		}
 	})
 
-	t.Run("when a branch moves on, gc keeps the tree fetched before", func(t *testing.T) {
+	t.Run("ブランチが進んだとき、gc は以前に取得したツリーを残す", func(t *testing.T) {
 		t.Parallel()
 
 		// Arrange
@@ -91,7 +91,6 @@ func TestCacheRepo(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		// Two commits leave the shallow fetch of the new tip unconnected to the old one.
 		testutil.Commit(t, work, "v2", map[string]string{"SKILL.md": "v2\n"})
 		testutil.Commit(t, work, "v3", map[string]string{"SKILL.md": "v3\n"})
 		testutil.Git(t, work, "push", "-q", bare, "main")
@@ -125,8 +124,7 @@ func TestCacheRepo(t *testing.T) {
 }
 
 func TestCacheRoot(t *testing.T) {
-	// Not parallel: sets XDG_CACHE_HOME.
-	t.Run("when XDG_CACHE_HOME is absolute, the cache lives there", func(t *testing.T) {
+	t.Run("XDG_CACHE_HOME が絶対パスのとき、キャッシュはそこに置かれる", func(t *testing.T) {
 		// Arrange
 		want := t.TempDir()
 		t.Setenv("XDG_CACHE_HOME", want)
@@ -140,7 +138,7 @@ func TestCacheRoot(t *testing.T) {
 		}
 	})
 
-	t.Run("when XDG_CACHE_HOME is relative, it is ignored", func(t *testing.T) {
+	t.Run("XDG_CACHE_HOME が相対パスのとき、無視される", func(t *testing.T) {
 		// Arrange
 		t.Setenv("XDG_CACHE_HOME", "relative")
 

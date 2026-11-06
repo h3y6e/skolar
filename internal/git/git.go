@@ -1,4 +1,4 @@
-// Package git runs the git operations skolar needs against remote repositories.
+// Package git は skolar がリモートリポジトリに対して必要とする git 操作を実行する
 package git
 
 import (
@@ -12,11 +12,11 @@ import (
 func gitCommand(ctx context.Context, args ...string) (*exec.Cmd, error) {
 	gitPath, err := exec.LookPath("git")
 	if err != nil {
-		return nil, fmt.Errorf("git not found: %w", err)
+		return nil, fmt.Errorf("git が見つかりません: %w", err)
 	}
 
 	cmd := exec.CommandContext(ctx, gitPath, args...)
-	// Interrupting rather than killing git lets it remove its lock files.
+	// 強制終了せず中断シグナルを送れば git は自身のロックファイルを削除できる
 	cmd.Cancel = func() error { return cmd.Process.Signal(os.Interrupt) }
 	cmd.WaitDelay = 10 * time.Second
 

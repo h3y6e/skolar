@@ -25,7 +25,6 @@ func initGitRepo(t *testing.T, files map[string]string) string {
 
 func TestMain(m *testing.M) { testutil.Main(m) }
 
-// checkoutRepo fetches the default branch of the repository at dir.
 func checkoutRepo(t *testing.T, dir string) git.Snapshot {
 	t.Helper()
 
@@ -52,9 +51,6 @@ func newCache(t *testing.T) *git.Cache {
 	return c
 }
 
-// snapshotOf presents dir, read without following links out of it, as
-// refs/tags/v2.0.0 whose every directory has the tree SHA tree, unless
-// trees names another.
 func snapshotOf(t *testing.T, dir, tree string, trees map[string]string) git.Snapshot {
 	t.Helper()
 
@@ -117,7 +113,7 @@ func readInstalledMetadata(t *testing.T, skillsDir, name string) skill.SourceMet
 func TestInstallTrackedSkills(t *testing.T) {
 	t.Parallel()
 
-	t.Run("when installing from a github source, SKILL.md carries injected metadata and no lockfile is written", func(t *testing.T) {
+	t.Run("github のソースからインストールしたとき、SKILL.md にメタデータが注入されてロックファイルは書かれない", func(t *testing.T) {
 		t.Parallel()
 
 		// Arrange
@@ -159,7 +155,7 @@ func TestInstallTrackedSkills(t *testing.T) {
 		}
 	})
 
-	t.Run("when the source has an explicit ref, the metadata records it as pinned", func(t *testing.T) {
+	t.Run("ソースに明示的な ref があるとき、メタデータはそれを固定として記録する", func(t *testing.T) {
 		t.Parallel()
 
 		// Arrange
@@ -184,7 +180,7 @@ func TestInstallTrackedSkills(t *testing.T) {
 		}
 	})
 
-	t.Run("when the source is not github, installing returns an error", func(t *testing.T) {
+	t.Run("ソースが github でないとき、インストールはエラーを返す", func(t *testing.T) {
 		t.Parallel()
 
 		// Arrange
@@ -209,7 +205,7 @@ func TestInstallTrackedSkills(t *testing.T) {
 		}
 	})
 
-	t.Run("when a skill with the same name exists, it is replaced", func(t *testing.T) {
+	t.Run("同名のスキルがあるとき、置き換えられる", func(t *testing.T) {
 		t.Parallel()
 
 		// Arrange
@@ -248,7 +244,7 @@ func gitTreeSHA(t *testing.T, repoDir, path string) string {
 func TestInstallTrackedSkillsLayout(t *testing.T) {
 	t.Parallel()
 
-	t.Run("when a skill holds an executable and a link, the install writes both 0644 and the link as a file holding its target, as gh skill does", func(t *testing.T) {
+	t.Run("スキルが実行ファイルとリンクを含むとき、インストールは gh skill と同様に両方を 0644 で書いてリンクはリンク先を内容とするファイルにする", func(t *testing.T) {
 		t.Parallel()
 		// Arrange
 		repo := initGitRepo(t, map[string]string{"skills/s/SKILL.md": "# S\n", "skills/s/run.sh": "echo\n"})

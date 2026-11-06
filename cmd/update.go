@@ -30,16 +30,18 @@ func newUpdateCmd() *cobra.Command {
 
 	c := &cobra.Command{
 		Use:   "update [source]",
-		Short: "Update installed skills from their sources (destructive)",
-		Long: `Update installed skills from their sources (destructive).
+		Short: "インストール済みのスキルをソースから更新する (破壊的)",
+		Long: `インストール済みのスキルをソースから更新する (破壊的)
 
-Lists the changed skills of each source, then overwrites local changes after confirmation:
-  M  changed upstream, with the lines and files update changes
-  R  moved upstream; update follows it
-  D  removed upstream; update keeps it, skolar remove deletes it
-  A  how many of the source's default skills are not installed; --json names them
-  !  could not be checked
-Up-to-date, pinned, and local skills are counted at the end.`,
+ソースごとに変更のあるスキルを一覧表示し、確認のうえでローカルの変更を上書きする
+
+    M  上流で変更された。update が変更する行数とファイル数を併記する
+    R  上流で移動した。update は移動に追従する
+    D  上流で削除された。update は削除しないので skolar remove で削除する
+    A  ソースの既定のスキルのうちインストールされていない数。--json では名前を出力する
+    !  確認できなかった
+
+最新のスキル、固定されたスキル、ローカルのスキルは最後に件数だけを表示する`,
 		Annotations: map[string]string{recordKey: "results"},
 		Args:        usageArgs(cobra.MaximumNArgs(1)),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -52,11 +54,11 @@ Up-to-date, pinned, and local skills are counted at the end.`,
 		},
 	}
 
-	bindSkillFlag(c, &opts.skills, "Update only these skills")
+	bindSkillFlag(c, &opts.skills, "これらのスキルだけを更新する")
 	bindDirFlag(c, &opts.dir)
-	c.Flags().BoolVarP(&opts.yes, "yes", "y", false, "Apply updates without confirmation")
-	c.Flags().BoolVar(&opts.dryRun, "dry-run", false, "Show the changes without applying")
-	c.Flags().BoolVar(&opts.json, "json", false, "Output results in JSON format")
+	c.Flags().BoolVarP(&opts.yes, "yes", "y", false, "確認なしで更新を適用する")
+	c.Flags().BoolVar(&opts.dryRun, "dry-run", false, "変更内容を表示するだけで適用しない")
+	c.Flags().BoolVar(&opts.json, "json", false, "結果を JSON 形式で出力する")
 
 	return c
 }
@@ -91,7 +93,7 @@ func runUpdate(cmd *cobra.Command, source string, opts updateOptions) (err error
 		return checkFailed(names(candidates, failed))
 	}
 
-	if err := approve(cmd, opts.yes, "Apply these updates?"); err != nil {
+	if err := approve(cmd, opts.yes, "これらの更新を適用しますか?"); err != nil {
 		return err
 	}
 
@@ -112,8 +114,6 @@ func occupied(layout lock.Layout, name string) bool {
 	return err == nil
 }
 
-// updateCandidates resolves the installed skills update covers, and the
-// upstream skills not installed anywhere in the directory.
 func updateCandidates(cmd *cobra.Command, inv inventory, source string, skills []string) ([]skill.UpdateCandidate, func(), error) {
 	entries, err := filterEntriesBySource(inv.entries, source)
 	if err != nil {
@@ -133,7 +133,7 @@ func updateCandidates(cmd *cobra.Command, inv inventory, source string, skills [
 
 	stderr := cmd.ErrOrStderr()
 	if len(entries) == 0 && len(foreign) == 0 {
-		fmt.Fprintln(stderr, "no installed skills to update")
+		fmt.Fprintln(stderr, "更新するインストール済みのスキルがありません")
 		return nil, func() {}, nil
 	}
 
@@ -144,7 +144,7 @@ func updateCandidates(cmd *cobra.Command, inv inventory, source string, skills [
 		return c.Status == skill.StatusNew && occupied(inv.layout, c.SkillName)
 	})
 	if len(candidates) == 0 {
-		fmt.Fprintln(stderr, "no matching skills to update")
+		fmt.Fprintln(stderr, "更新対象に一致するスキルがありません")
 	}
 
 	return candidates, cleanup, nil
@@ -159,7 +159,6 @@ func collectCandidates(
 	return candidates, skipped, func() { _ = cache.Close() }
 }
 
-// progress counts fetched sources on a terminal, erasing the count when done.
 func progress(w io.Writer) func(n, total int) {
 	show := status(w)
 
@@ -169,12 +168,10 @@ func progress(w io.Writer) func(n, total int) {
 			return
 		}
 
-		show(fmt.Sprintf("checking %d/%d sources", n, total))
+		show(fmt.Sprintf("ソースを確認中: %d/%d", n, total))
 	}
 }
 
-// planUpdates describes each candidate, counting what applying it changes.
-// A candidate whose changes cannot be counted fails its check.
 func planUpdates(layout lock.Layout, candidates []skill.UpdateCandidate) []updateResult {
 	results := make([]updateResult, len(candidates))
 	for i, c := range candidates {
@@ -183,7 +180,7 @@ func planUpdates(layout lock.Layout, candidates []skill.UpdateCandidate) []updat
 		if c.Applicable() {
 			stat, err := skill.DiffStat(c, layout.SkillDir(c.SkillName))
 			if err != nil {
-				candidates[i].Status, candidates[i].Reason = skill.StatusCheckFailed, fmt.Sprintf("count changes: %v", err)
+				candidates[i].Status, candidates[i].Reason = skill.StatusCheckFailed, fmt.Sprintf("変更の集計: %v", err)
 			} else {
 				diff = &diffStat{stat.Added, stat.Deleted, stat.Files}
 			}
@@ -235,7 +232,7 @@ func applyUpdates(inv inventory, candidates []skill.UpdateCandidate, apply []int
 		}
 
 		if err := skill.ReplaceSkill(c.SkillName, c.Upstream, inv.layout); err != nil {
-			return fmt.Errorf("update %s: %w", c.SkillName, err)
+			return fmt.Errorf("%s の更新: %w", c.SkillName, err)
 		}
 
 		results[i].Applied = true
@@ -288,7 +285,7 @@ func renderPlan(w io.Writer, results []updateResult) {
 		}
 
 		if news > 0 {
-			fmt.Fprintf(tw, "  A\t%d not installed\n", news)
+			fmt.Fprintf(tw, "  A\t%d 件が未インストール\n", news)
 		}
 	}
 
@@ -296,9 +293,12 @@ func renderPlan(w io.Writer, results []updateResult) {
 
 	var tally []string
 
-	for _, s := range []skill.Status{skill.StatusUpToDate, skill.StatusPinned, skill.StatusLocal} {
-		if counts[s] > 0 {
-			tally = append(tally, fmt.Sprintf("%d %s", counts[s], s))
+	for _, s := range []struct {
+		status skill.Status
+		label  string
+	}{{skill.StatusUpToDate, "最新"}, {skill.StatusPinned, "固定"}, {skill.StatusLocal, "ローカル"}} {
+		if n := counts[s.status]; n > 0 {
+			tally = append(tally, fmt.Sprintf("%s %d 件", s.label, n))
 		}
 	}
 
@@ -317,7 +317,7 @@ func describe(r updateResult) string {
 
 		return moved
 	case skill.StatusRemoved:
-		return "removed upstream"
+		return "上流で削除"
 	case skill.StatusCheckFailed:
 		return strings.Join(strings.Fields(r.Reason), " ")
 	case skill.StatusUpdateAvailable:
@@ -344,11 +344,11 @@ func printHints(w io.Writer, results []updateResult, dir string) {
 	}
 
 	if len(removed) > 0 {
-		fmt.Fprintf(w, "hint: skolar remove %s --dir %s deletes the skills removed upstream\n", strings.Join(removed, " "), dir)
+		fmt.Fprintf(w, "hint: 上流で削除されたスキルは skolar remove %s --dir %s で削除できます\n", strings.Join(removed, " "), dir)
 	}
 
 	if reinstall != "" {
-		fmt.Fprintf(w, "hint: skolar add %s -s <skill> --dir %s installs a skill not installed\n", reinstall, dir)
+		fmt.Fprintf(w, "hint: 未インストールのスキルは skolar add %s -s <skill> --dir %s でインストールできます\n", reinstall, dir)
 	}
 }
 
@@ -363,11 +363,11 @@ func appliedSummary(results []updateResult) string {
 
 	var parts []string
 	if n := counts[skill.StatusUpdateAvailable]; n > 0 {
-		parts = append(parts, fmt.Sprintf("updated %d", n))
+		parts = append(parts, fmt.Sprintf("%d 件を更新", n))
 	}
 
 	if n := counts[skill.StatusMoved]; n > 0 {
-		parts = append(parts, fmt.Sprintf("moved %d", n))
+		parts = append(parts, fmt.Sprintf("%d 件を移動", n))
 	}
 
 	return strings.Join(parts, ", ")

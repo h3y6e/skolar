@@ -18,7 +18,7 @@ import (
 func TestResolveUpdateCandidates(t *testing.T) {
 	t.Parallel()
 
-	t.Run("up-to-date when hashes match", func(t *testing.T) {
+	t.Run("ハッシュが一致するとき、状態は最新になる", func(t *testing.T) {
 		t.Parallel()
 
 		lockEntries := map[string]lock.Entry{
@@ -57,7 +57,7 @@ func TestResolveUpdateCandidates(t *testing.T) {
 		}
 	})
 
-	t.Run("update-available when hashes differ", func(t *testing.T) {
+	t.Run("ハッシュが異なるとき、状態は更新ありになる", func(t *testing.T) {
 		t.Parallel()
 
 		lockEntries := map[string]lock.Entry{
@@ -96,7 +96,7 @@ func TestResolveUpdateCandidates(t *testing.T) {
 		}
 	})
 
-	t.Run("multiple skills are resolved", func(t *testing.T) {
+	t.Run("複数のスキルがあるとき、すべてが解決される", func(t *testing.T) {
 		t.Parallel()
 
 		lockEntries := map[string]lock.Entry{
@@ -137,7 +137,7 @@ func TestResolveUpdateCandidates(t *testing.T) {
 		}
 	})
 
-	t.Run("candidates are sorted by name", func(t *testing.T) {
+	t.Run("候補を解決したとき、名前順に並ぶ", func(t *testing.T) {
 		t.Parallel()
 
 		lockEntries := map[string]lock.Entry{
@@ -175,7 +175,7 @@ func TestFilterCandidates(t *testing.T) {
 		{SkillName: "c", Status: skill.StatusCheckFailed},
 	}
 
-	t.Run("nil filter returns all", func(t *testing.T) {
+	t.Run("filter が nil のとき、全件が返る", func(t *testing.T) {
 		t.Parallel()
 
 		result := skill.FilterCandidates(candidates, nil)
@@ -184,7 +184,7 @@ func TestFilterCandidates(t *testing.T) {
 		}
 	})
 
-	t.Run("empty filter returns all", func(t *testing.T) {
+	t.Run("filter が空のとき、全件が返る", func(t *testing.T) {
 		t.Parallel()
 
 		result := skill.FilterCandidates(candidates, []string{})
@@ -193,7 +193,7 @@ func TestFilterCandidates(t *testing.T) {
 		}
 	})
 
-	t.Run("filters to specified skills", func(t *testing.T) {
+	t.Run("スキルを指定したとき、そのスキルだけに絞られる", func(t *testing.T) {
 		t.Parallel()
 
 		result := skill.FilterCandidates(candidates, []string{"b"})
@@ -206,7 +206,7 @@ func TestFilterCandidates(t *testing.T) {
 		}
 	})
 
-	t.Run("filters multiple skills", func(t *testing.T) {
+	t.Run("複数のスキルを指定したとき、それらだけに絞られる", func(t *testing.T) {
 		t.Parallel()
 
 		result := skill.FilterCandidates(candidates, []string{"a", "c"})
@@ -223,7 +223,7 @@ func collectLocked(entries map[string]lock.Entry, cloneFn skill.CloneFunc) ([]sk
 func TestCollectUpdateCandidates(t *testing.T) {
 	t.Parallel()
 
-	t.Run("groups entries by source and resolves candidates", func(t *testing.T) {
+	t.Run("エントリがあるとき、ソースごとにまとめて候補が解決される", func(t *testing.T) {
 		t.Parallel()
 
 		srcA := t.TempDir()
@@ -296,7 +296,7 @@ func TestCollectUpdateCandidates(t *testing.T) {
 		}
 	})
 
-	t.Run("groups entries by source and ref", func(t *testing.T) {
+	t.Run("エントリがあるとき、ソースと ref ごとにまとめられる", func(t *testing.T) {
 		t.Parallel()
 
 		srcMain := t.TempDir()
@@ -375,7 +375,7 @@ func TestCollectUpdateCandidates(t *testing.T) {
 		}
 	})
 
-	t.Run("returns sorted candidates across sources", func(t *testing.T) {
+	t.Run("複数のソースがあるとき、全体で名前順の候補が返る", func(t *testing.T) {
 		t.Parallel()
 
 		srcDir := t.TempDir()
@@ -418,7 +418,7 @@ func TestCollectUpdateCandidates(t *testing.T) {
 		}
 	})
 
-	t.Run("processes multiple sources concurrently", func(t *testing.T) {
+	t.Run("複数のソースがあるとき、並行に処理される", func(t *testing.T) {
 		t.Parallel()
 
 		srcA := t.TempDir()
@@ -488,7 +488,7 @@ func TestCollectUpdateCandidates(t *testing.T) {
 		}
 	})
 
-	t.Run("when the recorded upstream SKILL.md is malformed, the check fails instead of reporting the skill removed", func(t *testing.T) {
+	t.Run("記録された上流の SKILL.md が不正なとき、削除とは報告せず確認が失敗する", func(t *testing.T) {
 		t.Parallel()
 		// Arrange
 		src := t.TempDir()
@@ -505,7 +505,7 @@ func TestCollectUpdateCandidates(t *testing.T) {
 		}
 	})
 
-	t.Run("when lockfile and gh skill installs share a source, a skill neither installed is listed once", func(t *testing.T) {
+	t.Run("ロックファイルと gh skill のインストールが同じソースを共有するとき、どちらにも未インストールのスキルは 1 度だけ列挙される", func(t *testing.T) {
 		t.Parallel()
 		// Arrange
 		src := t.TempDir()
@@ -540,7 +540,7 @@ func TestCollectUpdateCandidates(t *testing.T) {
 		}
 	})
 
-	t.Run("when one source cannot be cloned, only its skills fail the check", func(t *testing.T) {
+	t.Run("1 つのソースを clone できないとき、そのスキルだけが確認に失敗する", func(t *testing.T) {
 		t.Parallel()
 		// Arrange
 		good := t.TempDir()
@@ -568,7 +568,7 @@ func TestCollectUpdateCandidates(t *testing.T) {
 		}
 	})
 
-	t.Run("empty lockfile returns empty candidates", func(t *testing.T) {
+	t.Run("ロックファイルが空のとき、候補は空になる", func(t *testing.T) {
 		t.Parallel()
 
 		cloneFn := func(_ string) (fs.FS, error) {
@@ -583,7 +583,7 @@ func TestCollectUpdateCandidates(t *testing.T) {
 		}
 	})
 
-	t.Run("unsupported source types are skipped", func(t *testing.T) {
+	t.Run("未対応のソース種別があるとき、スキップされる", func(t *testing.T) {
 		t.Parallel()
 
 		srcDir := t.TempDir()
@@ -703,31 +703,31 @@ func TestResolveUpdateCandidatesBySkillPath(t *testing.T) {
 		want     []want
 	}{
 		{
-			"when the entry's skillPath exists upstream, the skill at that path is compared even if another directory shares its name",
+			"エントリの skillPath が上流にあるとき、別のディレクトリが同名でもそのパスのスキルと比較される",
 			lock.Entry{SkillPath: ".claude/skills/dup/SKILL.md", ComputedHash: hashOf("b")},
 			[]skill.DiscoveredSkill{at("dup", "skills/dup", "a"), at("dup", ".claude/skills/dup", "b")},
 			[]want{{"dup", skill.StatusUpToDate, ".claude/skills/dup"}},
 		},
 		{
-			"when the entry's skillPath is gone and one upstream skill has its name, the skill has moved there",
+			"エントリの skillPath がなくなり同名の上流スキルが 1 つあるとき、スキルはそこへ移動したと判定される",
 			lock.Entry{SkillPath: "old/dup/SKILL.md", ComputedHash: hashOf("a")},
 			[]skill.DiscoveredSkill{at("dup", "skills/dup", "a")},
 			[]want{{"dup", skill.StatusMoved, "skills/dup"}},
 		},
 		{
-			"when the entry's skillPath is gone and no upstream skill has its name, the skill was removed upstream",
+			"エントリの skillPath がなくなり同名の上流スキルもないとき、スキルは上流で削除されたと判定される",
 			lock.Entry{SkillPath: "skills/dup/SKILL.md", ComputedHash: hashOf("a")},
 			[]skill.DiscoveredSkill{at("other", "skills/other", "a")},
 			[]want{{"dup", skill.StatusRemoved, ""}, {"other", skill.StatusNew, "skills/other"}},
 		},
 		{
-			"when an installed skill's path is another upstream skill's name, that skill is still new",
+			"インストール済みスキルのパスが別の上流スキルの名前と同じとき、その上流スキルは新規のままになる",
 			lock.Entry{SkillPath: "other/SKILL.md", ComputedHash: hashOf("a")},
 			[]skill.DiscoveredSkill{at("dup", "other", "a"), at("other", "skills/other", "b")},
 			[]want{{"dup", skill.StatusUpToDate, "other"}, {"other", skill.StatusNew, "skills/other"}},
 		},
 		{
-			"when the entry has no skillPath and two upstream skills share its name, the check fails as ambiguous",
+			"エントリに skillPath がなく同名の上流スキルが 2 つあるとき、曖昧として確認が失敗する",
 			lock.Entry{ComputedHash: hashOf("a")},
 			[]skill.DiscoveredSkill{at("dup", "skills/dup", "a"), at("dup", ".claude/skills/dup", "b")},
 			[]want{{"dup", skill.StatusCheckFailed, ""}},
@@ -751,12 +751,10 @@ func TestResolveUpdateCandidatesBySkillPath(t *testing.T) {
 	}
 }
 
-// fakeSkill returns an upstream skill at path whose SKILL.md is content.
 func fakeSkill(name, path, content string) skill.DiscoveredSkill {
 	return skill.DiscoveredSkill{Name: name, Path: path, FS: fstest.MapFS{"SKILL.md": {Data: []byte(content)}}}
 }
 
-// hashOf returns the computedHash of a skill whose SKILL.md is content.
 func hashOf(content string) string {
 	hash, err := skill.ComputeHash(fstest.MapFS{"SKILL.md": {Data: []byte(content)}})
 	if err != nil {

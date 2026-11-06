@@ -18,10 +18,10 @@ const (
 )
 
 var titles = map[string]string{
-	"Install/vercel": "install into a skills-lock.json project",
-	"Install/gh":     "install into a gh skill directory",
-	"Update/vercel":  "update a skills-lock.json project",
-	"Update/gh":      "update a gh skill directory",
+	"Install/vercel": "skills-lock.json プロジェクトへのインストール",
+	"Install/gh":     "gh skill ディレクトリへのインストール",
+	"Update/vercel":  "skills-lock.json プロジェクトの更新",
+	"Update/gh":      "gh skill ディレクトリの更新",
 }
 
 type bar struct {
@@ -129,7 +129,7 @@ func parseBench(r io.Reader, vs versions) (map[string]string, map[string][]float
 	}
 
 	if len(order) == 0 {
-		return nil, nil, nil, errors.New("no benchmark results in the input")
+		return nil, nil, nil, errors.New("入力にベンチマーク結果がありません")
 	}
 
 	return env, samples, order, nil
@@ -147,7 +147,7 @@ func (p *bench) add(name string, samples []float64) error {
 
 	title, ok := titles[op+"/"+kv["format"]]
 	if !ok {
-		return fmt.Errorf("%s: no title for this benchmark", name)
+		return fmt.Errorf("%s: このベンチマークに対応する見出しがありません", name)
 	}
 
 	gi := slices.IndexFunc(p.Groups, func(g group) bool { return g.Title == title })
@@ -170,7 +170,7 @@ func (p *bench) add(name string, samples []float64) error {
 	case "warm":
 		g.Bars[bi].Warm = median(samples)
 	default:
-		return fmt.Errorf("%s: cache is neither cold nor warm", name)
+		return fmt.Errorf("%s: キャッシュが cold でも warm でもありません", name)
 	}
 
 	p.Runs = min(p.Runs, len(samples))
@@ -183,13 +183,13 @@ func (p *bench) summarize() error {
 
 	for _, g := range p.Shown {
 		if len(g.Bars) != 2 || !g.Bars[0].Skolar {
-			return fmt.Errorf("%s: want skolar and one other tool", g.Title)
+			return fmt.Errorf("%s: skolar と他のツール 1 つが必要です", g.Title)
 		}
 
 		s, o := g.Bars[0], g.Bars[1]
 		if r := o.Warm / s.Warm; r < lead {
 			lead = r
-			p.Readout = fmt.Sprintf("repeat run: skolar %s · %s %s", secs(s.Warm), o.Tool, secs(o.Warm))
+			p.Readout = fmt.Sprintf("2 回目以降: skolar %s · %s %s", secs(s.Warm), o.Tool, secs(o.Warm))
 		}
 	}
 
@@ -237,7 +237,7 @@ func (p *bench) layout() {
 	}
 }
 
-// trimProcs drops the -GOMAXPROCS suffix go test appends unless it is 1.
+// trimProcs は go test が付ける -GOMAXPROCS の接尾辞を取り除く。値が 1 のときは付かない
 func trimProcs(name string) string {
 	i := strings.LastIndex(name, "-")
 	if _, err := strconv.Atoi(name[i+1:]); i < 0 || err != nil {

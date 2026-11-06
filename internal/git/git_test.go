@@ -54,7 +54,7 @@ func readSkill(t *testing.T, s git.Snapshot) string {
 func TestFetch(t *testing.T) {
 	t.Parallel()
 
-	t.Run("when no ref is given, fetching reads the default branch", func(t *testing.T) {
+	t.Run("ref を渡さないとき、取得はデフォルトブランチを読む", func(t *testing.T) {
 		t.Parallel()
 
 		// Arrange
@@ -72,7 +72,7 @@ func TestFetch(t *testing.T) {
 		}
 	})
 
-	t.Run("when the commit holds links and executables, the files keep their modes and links are never followed", func(t *testing.T) {
+	t.Run("コミットがリンクと実行ファイルを含むとき、ファイルはモードを保ちリンクはたどられない", func(t *testing.T) {
 		t.Parallel()
 
 		// Arrange
@@ -118,7 +118,7 @@ func TestFetch(t *testing.T) {
 		}
 	})
 
-	t.Run("when a branch, a lightweight tag or an annotated tag is given, fetching reads its content", func(t *testing.T) {
+	t.Run("ブランチ、軽量タグ、注釈付きタグを渡したとき、取得はその内容を読む", func(t *testing.T) {
 		t.Parallel()
 
 		// Arrange
@@ -138,7 +138,7 @@ func TestFetch(t *testing.T) {
 		}
 	})
 
-	t.Run("when a name matches both a branch and a tag, fetching reads the branch", func(t *testing.T) {
+	t.Run("名前がブランチとタグの両方に一致するとき、取得はブランチを読む", func(t *testing.T) {
 		t.Parallel()
 
 		// Arrange
@@ -156,7 +156,7 @@ func TestFetch(t *testing.T) {
 		}
 	})
 
-	t.Run("when the ref is a commit SHA, fetching reads that commit", func(t *testing.T) {
+	t.Run("ref がコミット SHA のとき、取得はそのコミットを読む", func(t *testing.T) {
 		t.Parallel()
 
 		// Arrange
@@ -175,7 +175,7 @@ func TestFetch(t *testing.T) {
 		}
 	})
 
-	t.Run("when a commit was fetched before, fetching reads it without the remote", func(t *testing.T) {
+	t.Run("コミットを以前に取得したとき、取得はリモートなしでそれを読む", func(t *testing.T) {
 		t.Parallel()
 
 		// Arrange
@@ -206,7 +206,7 @@ func TestFetch(t *testing.T) {
 		}
 	})
 
-	t.Run("when a fetched branch is deleted upstream, fetching it fails instead of reading the cached copy", func(t *testing.T) {
+	t.Run("取得済みのブランチが上流で削除されたとき、取得はキャッシュのコピーを読まず失敗する", func(t *testing.T) {
 		t.Parallel()
 
 		// Arrange
@@ -226,7 +226,7 @@ func TestFetch(t *testing.T) {
 		}
 	})
 
-	t.Run("when the same remote is fetched concurrently, every fetch succeeds", func(t *testing.T) {
+	t.Run("同じリモートを並行して取得したとき、すべての取得が成功する", func(t *testing.T) {
 		t.Parallel()
 
 		// Arrange
@@ -250,7 +250,7 @@ func TestFetch(t *testing.T) {
 		}
 	})
 
-	t.Run("when fetched, TreeSHA returns the tree SHA of the root and of a directory", func(t *testing.T) {
+	t.Run("取得したとき、TreeSHA はルートとディレクトリのツリー SHA を返す", func(t *testing.T) {
 		t.Parallel()
 
 		// Arrange
@@ -271,7 +271,7 @@ func TestFetch(t *testing.T) {
 		}
 	})
 
-	t.Run("when the remote does not exist, fetching fails", func(t *testing.T) {
+	t.Run("リモートが存在しないとき、取得は失敗する", func(t *testing.T) {
 		t.Parallel()
 
 		// Act
@@ -283,7 +283,7 @@ func TestFetch(t *testing.T) {
 		}
 	})
 
-	t.Run("when the context is cancelled, fetching fails", func(t *testing.T) {
+	t.Run("コンテキストがキャンセルされたとき、取得は失敗する", func(t *testing.T) {
 		t.Parallel()
 
 		// Arrange
@@ -308,8 +308,7 @@ func TestFetch(t *testing.T) {
 }
 
 func TestFetchObjectFormat(t *testing.T) {
-	// Not parallel: sets GIT_DEFAULT_HASH.
-	t.Run("when the remote uses SHA-256, fetching reads it", func(t *testing.T) {
+	t.Run("リモートが SHA-256 を使うとき、取得はそれを読む", func(t *testing.T) {
 		// Arrange
 		work := t.TempDir()
 		testutil.Git(t, work, "init", "--object-format=sha256", "-b", "main")
@@ -329,7 +328,7 @@ func TestFetchObjectFormat(t *testing.T) {
 		}
 	})
 
-	t.Run("when git creates SHA-256 repositories by default, fetching a SHA-1 remote still works", func(t *testing.T) {
+	t.Run("git が既定で SHA-256 のリポジトリを作るとき、SHA-1 のリモートの取得も成功する", func(t *testing.T) {
 		// Arrange
 		repo := initTaggedRepo(t)
 		t.Setenv("GIT_DEFAULT_HASH", "sha256")
@@ -346,7 +345,7 @@ func TestFetchObjectFormat(t *testing.T) {
 func TestReadTree(t *testing.T) {
 	t.Parallel()
 
-	t.Run("when a fetched commit holds the tree, reading it lists the tree's files", func(t *testing.T) {
+	t.Run("取得したコミットがツリーを持つとき、読み取りはツリーのファイルを一覧する", func(t *testing.T) {
 		t.Parallel()
 
 		// Arrange
@@ -374,7 +373,7 @@ func TestReadTree(t *testing.T) {
 		}
 	})
 
-	t.Run("when the remote is named with .git, reading uses what fetching the bare name cached", func(t *testing.T) {
+	t.Run("リモートが .git 付きで指定されたとき、読み取りは .git なしの名前で取得したキャッシュを使う", func(t *testing.T) {
 		t.Parallel()
 
 		// Arrange
@@ -398,7 +397,7 @@ func TestReadTree(t *testing.T) {
 		}
 	})
 
-	t.Run("when nothing fetched holds the tree, reading it reports it is not cached", func(t *testing.T) {
+	t.Run("取得済みのどれもツリーを持たないとき、読み取りはキャッシュにないことを報告する", func(t *testing.T) {
 		t.Parallel()
 
 		// Arrange
@@ -419,7 +418,7 @@ func TestReadTree(t *testing.T) {
 		}
 	})
 
-	t.Run("when the tree SHA is a ref name, reading it fails without resolving the name", func(t *testing.T) {
+	t.Run("ツリー SHA が ref 名のとき、名前を解決せずに読み取りが失敗する", func(t *testing.T) {
 		t.Parallel()
 
 		// Arrange
@@ -441,7 +440,7 @@ func TestReadTree(t *testing.T) {
 func TestFetchUntrustedInput(t *testing.T) {
 	t.Parallel()
 
-	t.Run("when the ref looks like an option, git does not run it as one", func(t *testing.T) {
+	t.Run("ref がオプションに見えるとき、git はそれをオプションとして実行しない", func(t *testing.T) {
 		t.Parallel()
 		// Arrange
 		bare := testutil.BareRepo(t, map[string]string{"SKILL.md": "# S\n"})
@@ -456,7 +455,7 @@ func TestFetchUntrustedInput(t *testing.T) {
 		}
 	})
 
-	t.Run("when the remote asks for credentials, resolving fails instead of prompting", func(t *testing.T) {
+	t.Run("リモートが認証情報を求めるとき、解決はプロンプトを出さず失敗する", func(t *testing.T) {
 		t.Parallel()
 		// Arrange
 		srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
@@ -476,7 +475,7 @@ func TestFetchUntrustedInput(t *testing.T) {
 }
 
 func TestFetchIgnoresAskpass(t *testing.T) {
-	t.Run("when an askpass program is configured, resolving fails without running it", func(t *testing.T) {
+	t.Run("askpass プログラムが設定されているとき、解決はそれを実行せず失敗する", func(t *testing.T) {
 		// Arrange
 		marker := filepath.Join(t.TempDir(), "asked")
 

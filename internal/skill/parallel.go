@@ -4,8 +4,6 @@ import (
 	"sync"
 )
 
-// parallelMap applies f to each item on a bounded number of goroutines,
-// keeping the order of items.
 func parallelMap[T, R any](items []T, f func(T) R) []R {
 	results := make([]R, len(items))
 	sem := make(chan struct{}, 16)

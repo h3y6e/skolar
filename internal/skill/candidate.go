@@ -15,11 +15,11 @@ import (
 	"github.com/h3y6e/skolar/internal/lock"
 )
 
-// Status is the update state of an installed skill, or of an upstream skill
-// that is not installed.
+// Status はインストール済みスキルまたはインストールされていない上流スキルの
+// 更新状態を表す
 type Status string
 
-// Statuses update reports and acts on.
+// update が報告し、処理の対象とする状態
 const (
 	StatusUpToDate        Status = "up-to-date"
 	StatusUpdateAvailable Status = "update-available"
@@ -31,8 +31,8 @@ const (
 	StatusLocal           Status = "local"
 )
 
-// UpdateCandidate represents the update status of an installed skill, or an
-// upstream skill not installed yet (StatusNew).
+// UpdateCandidate はインストール済みスキルまたはまだインストールされていない
+// 上流スキル (StatusNew) の更新状態を表す
 type UpdateCandidate struct {
 	SkillName   string
 	Source      string
@@ -40,43 +40,41 @@ type UpdateCandidate struct {
 	CurrentHash string
 	LatestHash  string
 	Status      Status
-	// Upstream holds what update installs, metadata included.
+	// Upstream は update がインストールする内容をメタデータ込みで保持する
 	Upstream fs.FS
-	// Path is the repo-relative upstream directory the skill resolved to.
+	// Path はスキルが解決された上流のディレクトリで、リポジトリからの相対パスである
 	Path string
-	// PreviousPath is the directory recorded at install, for a skill that
-	// moved or was removed upstream.
+	// PreviousPath はインストール時に記録されたディレクトリで、上流で移動または
+	// 削除されたスキルに使う
 	PreviousPath string
-	// Reinstall is the add argument that installs a StatusNew skill.
+	// Reinstall は StatusNew のスキルをインストールする add の引数である
 	Reinstall string
 	Reason    string
-	// Foreign marks skills installed by gh-compatible tooling that have no
-	// lockfile entry. Applying them replaces the directory only; the lockfile
-	// is left untouched.
+	// Foreign は gh 互換ツールがインストールし、ロックファイルにエントリがない
+	// スキルを示す。適用するとディレクトリだけを置き換え、ロックファイルは変更しない
 	Foreign bool
 }
 
-// Applicable reports whether update replaces the installed skill.
+// Applicable は update がインストール済みのスキルを置き換えるかを返す
 func (c UpdateCandidate) Applicable() bool {
 	return c.Status == StatusUpdateAvailable || c.Status == StatusMoved
 }
 
-// CloneFunc returns the files of a source at its ref.
+// CloneFunc はソースの ref 時点のファイルを返す
 type CloneFunc func(source string) (fs.FS, error)
 
-// SkippedEntry is a lock entry skipped due to an unsupported source type.
+// SkippedEntry は未対応のソース種別のためスキップしたロックファイルのエントリである
 type SkippedEntry struct {
 	SkillName  string
 	SourceType lock.SourceType
 }
 
-var errRemoved = errors.New("removed upstream")
+var errRemoved = errors.New("上流で削除されました")
 
-// ResolveUpdateCandidates compares the lock entries of one source against its
-// upstream skills, returning update candidates sorted by name, then a
-// StatusNew candidate for each upstream skill not installed. An entry
-// resolves to the skill at its skillPath; when that path is gone or
-// unrecorded, to the only upstream skill with its name.
+// ResolveUpdateCandidates は 1 つのソースのロックファイルのエントリを上流のスキルと比較し、
+// 名前順の更新候補を返す。続けてインストールされていない上流スキルごとに
+// StatusNew の候補を返す。エントリは skillPath のスキルに解決され、そのパスが
+// なくなった場合や未記録の場合は同名の上流スキルが 1 つだけならそれに解決される
 func ResolveUpdateCandidates(entries map[string]lock.Entry, upstream []DiscoveredSkill) []UpdateCandidate {
 	candidates := make([]UpdateCandidate, 0, len(entries))
 	reinstall := ""
@@ -116,8 +114,6 @@ func ResolveUpdateCandidates(entries map[string]lock.Entry, upstream []Discovere
 	return append(candidates, newCandidates(candidates, upstream, reinstall)...)
 }
 
-// recordedDir returns the upstream directory an entry's skillPath records,
-// or "" when it records none.
 func recordedDir(entry lock.Entry) string {
 	if entry.SkillPath == "" {
 		return ""
@@ -126,8 +122,6 @@ func recordedDir(entry lock.Entry) string {
 	return path.Dir(entry.SkillPath)
 }
 
-// changeStatus classifies a resolved skill, returning the recorded path
-// when the skill moved away from it.
 func changeStatus(recorded, current string, changed bool) (Status, string) {
 	switch {
 	case recorded != "" && recorded != current:
@@ -139,8 +133,6 @@ func changeStatus(recorded, current string, changed bool) (Status, string) {
 	}
 }
 
-// newCandidates returns the upstream skills installed by default that none
-// of the installed candidates of the source resolved to or is named after.
 func newCandidates(installed []UpdateCandidate, upstream []DiscoveredSkill, reinstall string) []UpdateCandidate {
 	names, paths := map[string]bool{}, map[string]bool{}
 	for _, c := range installed {
@@ -194,10 +186,10 @@ func resolveUpstream(name, recorded string, upstream []DiscoveredSkill) (Discove
 		paths[i] = s.Path
 	}
 
-	return DiscoveredSkill{}, fmt.Errorf("ambiguous upstream: %s", strings.Join(paths, ", "))
+	return DiscoveredSkill{}, fmt.Errorf("上流に候補が複数あります: %s", strings.Join(paths, ", "))
 }
 
-// FilterCandidates returns only candidates whose names filter selects. Empty filter returns all.
+// FilterCandidates は filter が選ぶ名前の候補だけを返す。filter が空なら全件を返す
 func FilterCandidates(candidates []UpdateCandidate, filter []string) []UpdateCandidate {
 	if len(filter) == 0 {
 		return candidates
@@ -214,8 +206,8 @@ func FilterCandidates(candidates []UpdateCandidate, filter []string) []UpdateCan
 	return result
 }
 
-// FilterDiscoveredSkills returns the skills filter selects, or the default
-// skills when filter is empty. Of skills sharing a name, the first wins.
+// FilterDiscoveredSkills は filter が選ぶスキルを返す。filter が空なら既定のスキルを返す。
+// 同名のスキルが複数あれば最初のものを採る
 func FilterDiscoveredSkills(skills []DiscoveredSkill, filter []string) []DiscoveredSkill {
 	var result []DiscoveredSkill
 	for _, s := range skills {
@@ -231,11 +223,10 @@ func FilterDiscoveredSkills(skills []DiscoveredSkill, filter []string) []Discove
 	return result
 }
 
-// CollectUpdateCandidates resolves update candidates for lockfile entries
-// and gh skill installs, fetching every source in parallel. A source that
-// cannot be fetched fails only its own skills. done is called after each
-// source with the number fetched so far and the total. Entries of
-// unsupported source types are skipped.
+// CollectUpdateCandidates はロックファイルのエントリと gh skill のインストールについて
+// 更新候補を解決し、全ソースを並列に取得する。取得に失敗したソースはそのソースの
+// スキルだけを失敗させる。done は各ソースの取得後に取得済みの数と総数を渡して呼ばれる。
+// 未対応のソース種別のエントリはスキップする
 func CollectUpdateCandidates(
 	entries map[string]lock.Entry, installed []InstalledSkill, cloneFn CloneFunc, fns UpstreamFuncs, done func(n, total int),
 ) ([]UpdateCandidate, []SkippedEntry) {
@@ -272,9 +263,6 @@ func CollectUpdateCandidates(
 	return dropInstalledNews(candidates), skipped
 }
 
-// dropInstalledNews keeps one StatusNew candidate per source and name, and
-// none for a name installed from any source: a source can hold both lockfile
-// and gh skill installs, each listing the other's skills as new.
 func dropInstalledNews(candidates []UpdateCandidate) []UpdateCandidate {
 	installed := map[string]bool{}
 
@@ -302,7 +290,7 @@ func resolveSourceCandidates(source string, group map[string]lock.Entry, cloneFn
 		for i, c := range candidates {
 			if c.Status == StatusRemoved && c.PreviousPath != "" && hasSkillMD(repo, c.PreviousPath) {
 				candidates[i].Status = StatusCheckFailed
-				candidates[i].Reason = fmt.Sprintf("upstream %s/SKILL.md is not a valid skill", c.PreviousPath)
+				candidates[i].Reason = fmt.Sprintf("上流の %s/SKILL.md は有効なスキルではありません", c.PreviousPath)
 			}
 		}
 
@@ -327,12 +315,12 @@ func resolveSourceCandidates(source string, group map[string]lock.Entry, cloneFn
 func cloneAndDiscover(source string, cloneFn CloneFunc) (fs.FS, []DiscoveredSkill, error) {
 	repo, err := cloneFn(source)
 	if err != nil {
-		return nil, nil, fmt.Errorf("fetch %s: %w", source, err)
+		return nil, nil, fmt.Errorf("%s の取得: %w", source, err)
 	}
 
 	upstream, err := DiscoverSkills(repo)
 	if err != nil {
-		return nil, nil, fmt.Errorf("discover skills in %s: %w", source, err)
+		return nil, nil, fmt.Errorf("%s のスキルの探索: %w", source, err)
 	}
 
 	return repo, upstream, nil
@@ -344,8 +332,8 @@ func hasSkillMD(repo fs.FS, dir string) bool {
 	return err == nil
 }
 
-// NewCloneFunc returns a CloneFunc that checks sources out through c, as
-// vercel-labs/skills clones them.
+// NewCloneFunc は vercel-labs/skills と同じように c を通してソースをチェックアウトする
+// CloneFunc を返す
 func NewCloneFunc(ctx context.Context, c *git.Cache) CloneFunc {
 	return func(source string) (fs.FS, error) {
 		ref, err := ParseSource(source)

@@ -1,4 +1,4 @@
-// Command skolar manages local agent skills from git repositories.
+// skolar コマンドはプロジェクトで使うエージェントスキルを git リポジトリから取り込んで管理する
 package main
 
 import (

@@ -12,7 +12,7 @@ import (
 func TestDiffStat(t *testing.T) {
 	t.Parallel()
 
-	t.Run("when a lockfile skill updates, files vercel-labs/skills leaves out are not counted", func(t *testing.T) {
+	t.Run("ロックファイルのスキルを更新するとき、vercel-labs/skills が含めないファイルは数えられない", func(t *testing.T) {
 		t.Parallel()
 		// Arrange
 		dir := t.TempDir()
@@ -32,7 +32,7 @@ func TestDiffStat(t *testing.T) {
 		}
 	})
 
-	t.Run("when an update adds an empty file, drops an installed link and only changes a mode, the file and the link count", func(t *testing.T) {
+	t.Run("更新が空ファイルの追加、インストール済みリンクの削除、モードのみの変更を含むとき、ファイルとリンクが数えられる", func(t *testing.T) {
 		t.Parallel()
 		// Arrange
 		dir := t.TempDir()
@@ -63,7 +63,7 @@ func TestDiffStat(t *testing.T) {
 		}
 	})
 
-	t.Run("when a gh skill updates, the rewritten source metadata is not counted", func(t *testing.T) {
+	t.Run("gh skill を更新するとき、書き換えられたソースのメタデータは数えられない", func(t *testing.T) {
 		t.Parallel()
 		// Arrange
 		dir := t.TempDir()
@@ -83,7 +83,7 @@ func TestDiffStat(t *testing.T) {
 		}
 	})
 
-	t.Run("when lines move, change at the end of file, or appear twice, lines count as git diff --numstat counts them", func(t *testing.T) {
+	t.Run("行の移動、ファイル末尾の変更、重複する行があるとき、行数は git diff --numstat と同じになる", func(t *testing.T) {
 		t.Parallel()
 		// Arrange
 		dir := t.TempDir()
@@ -104,7 +104,7 @@ func TestDiffStat(t *testing.T) {
 		}
 	})
 
-	t.Run("when an installed link gives way to an upstream file at its path, that path counts once", func(t *testing.T) {
+	t.Run("インストール済みリンクが同じパスの上流ファイルに置き換わるとき、そのパスは 1 度だけ数えられる", func(t *testing.T) {
 		t.Parallel()
 		// Arrange
 		dir := t.TempDir()

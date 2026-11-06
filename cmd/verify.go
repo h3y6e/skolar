@@ -25,12 +25,12 @@ func newVerifyCmd() *cobra.Command {
 
 	c := &cobra.Command{
 		Use:   "verify",
-		Short: "Verify installed skills against their records",
-		Long: `Verify installed skills against their records.
+		Short: "インストール済みのスキルを記録と照合する",
+		Long: `インストール済みのスキルを記録と照合する
 
-Lockfile skills are hashed on disk and compared with computedHash, offline; on a mismatch the source is cloned to compare file by file.
-gh skill metadata is compared file by file with the tree github-tree-sha names, fetched at github-ref.
-Exits 1 when a skill is modified or cannot be verified.`,
+変更されたスキルは記録と異なるファイルも表示する
+
+スキルが変更されているか検証できない場合は終了ステータス 1 で終了する`,
 		Annotations: map[string]string{recordKey: "results"},
 		Args:        usageArgs(cobra.NoArgs),
 		RunE: func(cmd *cobra.Command, _ []string) error {
@@ -38,9 +38,9 @@ Exits 1 when a skill is modified or cannot be verified.`,
 		},
 	}
 
-	bindSkillFlag(c, &opts.skills, "Verify only these skills")
+	bindSkillFlag(c, &opts.skills, "これらのスキルだけを検証する")
 	bindDirFlag(c, &opts.dir)
-	c.Flags().BoolVar(&opts.json, "json", false, "Output results in JSON format")
+	c.Flags().BoolVar(&opts.json, "json", false, "結果を JSON 形式で出力する")
 
 	return c
 }
@@ -92,20 +92,29 @@ func runVerify(cmd *cobra.Command, opts verifyOptions) (err error) {
 	}
 
 	if len(results) == 0 && !opts.json {
-		fmt.Fprintln(cmd.ErrOrStderr(), "no installed skills to verify")
+		fmt.Fprintln(cmd.ErrOrStderr(), "検証するインストール済みのスキルがありません")
 	}
 
 	return verifyFailed(failed, layout.Dir)
 }
 
+var verifyLabels = map[skill.VerifyStatus]string{
+	skill.VerifyVerified:     "検証済み",
+	skill.VerifyModified:     "変更あり",
+	skill.VerifyUnverifiable: "検証不能",
+	skill.VerifyLocal:        "ローカル",
+}
+
 func renderVerifyResult(w io.Writer, r skill.VerifyResult) {
+	label := verifyLabels[r.Status]
+
 	switch {
 	case len(r.Files) > 0:
-		fmt.Fprintf(w, "%s: %s (%s)\n", r.SkillName, r.Status, strings.Join(r.Files, ", "))
+		fmt.Fprintf(w, "%s: %s (%s)\n", r.SkillName, label, strings.Join(r.Files, ", "))
 	case r.Reason != "":
-		fmt.Fprintf(w, "%s: %s (%s)\n", r.SkillName, r.Status, r.Reason)
+		fmt.Fprintf(w, "%s: %s (%s)\n", r.SkillName, label, r.Reason)
 	default:
-		fmt.Fprintf(w, "%s: %s\n", r.SkillName, r.Status)
+		fmt.Fprintf(w, "%s: %s\n", r.SkillName, label)
 	}
 }
 
@@ -126,7 +135,7 @@ func verifyFailed(failed []skill.VerifyResult, dir string) error {
 
 	return &cliError{
 		code: codeVerifyFailed,
-		err:  fmt.Errorf("%s did not verify", strings.Join(names, ", ")),
+		err:  fmt.Errorf("%s を検証できませんでした", strings.Join(names, ", ")),
 		fix:  fix,
 	}
 }

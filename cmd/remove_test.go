@@ -22,7 +22,7 @@ func TestRemoveFlags(t *testing.T) {
 	root := cmd.NewRootCmd("test")
 	removeCmd, _, _ := root.Find([]string{"remove"})
 
-	t.Run("--dir flag is registered", func(t *testing.T) {
+	t.Run("--dir フラグが登録されている", func(t *testing.T) {
 		t.Parallel()
 
 		flag := removeCmd.Flags().Lookup("dir")
@@ -41,7 +41,6 @@ func TestRemoveAlias(t *testing.T) {
 
 	skillsDir := filepath.Join(t.TempDir(), ".agents", "skills")
 
-	// Install.
 	root1 := cmd.NewRootCmd("test")
 	root1.SetArgs([]string{"add", "-d", skillsDir, bareURL})
 
@@ -49,7 +48,6 @@ func TestRemoveAlias(t *testing.T) {
 		t.Fatalf("add error: %v", err)
 	}
 
-	// Remove via rm alias.
 	var out bytes.Buffer
 
 	root2 := cmd.NewRootCmd("test")
@@ -60,12 +58,10 @@ func TestRemoveAlias(t *testing.T) {
 		t.Fatalf("rm error: %v", err)
 	}
 
-	// Skill directory should be gone.
 	if _, err := os.Stat(filepath.Join(skillsDir, "alpha")); !errors.Is(err, os.ErrNotExist) {
 		t.Error("expected alpha directory to be removed via rm alias")
 	}
 
-	// Lockfile should not contain alpha.
 	lf, err := lock.ReadFile(lock.FilePath(skillsDir))
 	if err != nil {
 		t.Fatalf("read lockfile: %v", err)
@@ -79,7 +75,7 @@ func TestRemoveAlias(t *testing.T) {
 func TestRemove(t *testing.T) {
 	t.Parallel()
 
-	t.Run("removes skill directory and lockfile entry", func(t *testing.T) {
+	t.Run("スキルを削除したとき、スキルのディレクトリとロックファイルのエントリが消える", func(t *testing.T) {
 		t.Parallel()
 
 		bareURL := testutil.BareRepo(t, map[string]string{
@@ -89,7 +85,6 @@ func TestRemove(t *testing.T) {
 
 		skillsDir := filepath.Join(t.TempDir(), ".agents", "skills")
 
-		// Install both skills.
 		root1 := cmd.NewRootCmd("test")
 		root1.SetArgs([]string{"add", "-d", skillsDir, bareURL})
 
@@ -97,7 +92,6 @@ func TestRemove(t *testing.T) {
 			t.Fatalf("add error: %v", err)
 		}
 
-		// Remove only alpha.
 		root2 := cmd.NewRootCmd("test")
 		root2.SetArgs([]string{"remove", "-y", "-d", skillsDir, "alpha"})
 
@@ -105,17 +99,14 @@ func TestRemove(t *testing.T) {
 			t.Fatalf("remove error: %v", err)
 		}
 
-		// Alpha directory should be gone.
 		if _, err := os.Stat(filepath.Join(skillsDir, "alpha")); !errors.Is(err, os.ErrNotExist) {
 			t.Error("expected alpha directory to be removed")
 		}
 
-		// Beta directory should still exist.
 		if _, err := os.Stat(filepath.Join(skillsDir, "beta", "SKILL.md")); err != nil {
 			t.Error("expected beta to remain after removing alpha")
 		}
 
-		// Lockfile should only have beta.
 		lf, err := lock.ReadFile(lock.FilePath(skillsDir))
 		if err != nil {
 			t.Fatalf("read lockfile: %v", err)
@@ -130,7 +121,7 @@ func TestRemove(t *testing.T) {
 		}
 	})
 
-	t.Run("when the directory is custom, removing a skill only the lockfile records fails", func(t *testing.T) {
+	t.Run("カスタムディレクトリでロックファイルにしかないスキルを削除したとき、失敗する", func(t *testing.T) {
 		t.Parallel()
 
 		rootDir := t.TempDir()
@@ -164,12 +155,11 @@ func TestRemove(t *testing.T) {
 		}
 	})
 
-	t.Run("errors when skill not in lockfile", func(t *testing.T) {
+	t.Run("スキルがロックファイルにないとき、エラーになる", func(t *testing.T) {
 		t.Parallel()
 
 		skillsDir := filepath.Join(t.TempDir(), ".agents", "skills")
 
-		// Create a lockfile with one skill.
 		lf := lock.File{
 			Version: 1,
 			Skills: map[string]lock.Entry{
@@ -180,7 +170,6 @@ func TestRemove(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		// Try to remove a skill that doesn't exist.
 		root := cmd.NewRootCmd("test")
 		root.SetArgs([]string{"remove", "-d", skillsDir, "nonexistent"})
 
@@ -190,7 +179,7 @@ func TestRemove(t *testing.T) {
 		}
 	})
 
-	t.Run("errors when lockfile missing", func(t *testing.T) {
+	t.Run("ロックファイルがないとき、エラーになる", func(t *testing.T) {
 		t.Parallel()
 
 		skillsDir := filepath.Join(t.TempDir(), ".agents", "skills")
@@ -203,11 +192,10 @@ func TestRemove(t *testing.T) {
 		}
 	})
 
-	t.Run("when a gh-format skill in a custom directory shares a name with a lockfile entry, removing it keeps the entry", func(t *testing.T) {
+	t.Run("カスタムディレクトリの gh 形式のスキルがロックファイルのエントリと同名のとき、削除してもエントリは残る", func(t *testing.T) {
 		t.Parallel()
 
-		// Arrange: beta is installed in a custom directory in gh skill format,
-		// while the lockfile tracks a different beta in the default directory.
+		// Arrange
 		rootDir := t.TempDir()
 		dirA := filepath.Join(rootDir, ".agents", "skills")
 		custom := filepath.Join(rootDir, "custom", "skills")
@@ -265,12 +253,11 @@ func TestRemove(t *testing.T) {
 }
 
 func TestRemoveConfirmation(t *testing.T) {
-	// Not parallel: overrides IsTTY.
 	origIsTTY := cmd.IsTTY
 
 	t.Cleanup(func() { cmd.IsTTY = origIsTTY })
 
-	t.Run("when --dry-run is given, removing prints the directory and keeps it", func(t *testing.T) {
+	t.Run("--dry-run を指定したとき、削除はディレクトリを表示して残す", func(t *testing.T) {
 		// Arrange
 		cmd.IsTTY = func() bool { return false }
 		skillsDir := filepath.Join(t.TempDir(), "skills")
@@ -298,7 +285,7 @@ func TestRemoveConfirmation(t *testing.T) {
 		}
 	})
 
-	t.Run("when there is no TTY and no --yes, removing fails and keeps the skill", func(t *testing.T) {
+	t.Run("TTY も --yes もないとき、削除は失敗してスキルを残す", func(t *testing.T) {
 		// Arrange
 		cmd.IsTTY = func() bool { return false }
 		skillsDir := filepath.Join(t.TempDir(), "skills")
@@ -312,7 +299,7 @@ func TestRemoveConfirmation(t *testing.T) {
 		err := root.Execute()
 
 		// Assert
-		if err == nil || !strings.Contains(err.Error(), "confirmation required") {
+		if err == nil || !strings.Contains(err.Error(), "確認が必要です") {
 			t.Fatalf("err = %v, want confirmation required", err)
 		}
 
@@ -321,7 +308,7 @@ func TestRemoveConfirmation(t *testing.T) {
 		}
 	})
 
-	t.Run("when the user declines on a TTY, removing fails and keeps the skill", func(t *testing.T) {
+	t.Run("TTY でユーザーが拒否したとき、削除は失敗してスキルを残す", func(t *testing.T) {
 		// Arrange
 		cmd.IsTTY = func() bool { return true }
 		skillsDir := filepath.Join(t.TempDir(), "skills")
@@ -346,7 +333,7 @@ func TestRemoveConfirmation(t *testing.T) {
 		}
 	})
 
-	t.Run("when canceled while waiting for an answer on a TTY, removing fails and keeps the skill", func(t *testing.T) {
+	t.Run("TTY で回答待ちの間にキャンセルされたとき、削除は失敗してスキルを残す", func(t *testing.T) {
 		// Arrange
 		cmd.IsTTY = func() bool { return true }
 		skillsDir := filepath.Join(t.TempDir(), "skills")
@@ -374,7 +361,7 @@ func TestRemoveConfirmation(t *testing.T) {
 		}
 	})
 
-	t.Run("when the user accepts on a TTY, removing deletes the skill", func(t *testing.T) {
+	t.Run("TTY でユーザーが承諾したとき、削除はスキルを削除する", func(t *testing.T) {
 		// Arrange
 		cmd.IsTTY = func() bool { return true }
 		skillsDir := filepath.Join(t.TempDir(), "skills")
@@ -424,34 +411,34 @@ func writeTrackedSkill(t *testing.T, skillsDir, name string) {
 func TestRemoveGlob(t *testing.T) {
 	t.Parallel()
 
-	t.Run("when a glob matches installed skills, remove deletes exactly those", func(t *testing.T) {
+	t.Run("glob がインストール済みのスキルに一致したとき、削除は一致したスキルだけを削除する", func(t *testing.T) {
 		t.Parallel()
 		// Arrange
 		bareURL := testutil.BareRepo(t, map[string]string{
-			"skills/gke-cost/SKILL.md":  "# Cost\n",
-			"skills/gke-scale/SKILL.md": "# Scale\n",
-			"skills/gcs/SKILL.md":       "# GCS\n",
+			"skills/spec-plan/SKILL.md":   "# Plan\n",
+			"skills/spec-review/SKILL.md": "# Review\n",
+			"skills/beta/SKILL.md":        "# Beta\n",
 		})
 		skillsDir := filepath.Join(t.TempDir(), ".agents", "skills")
 		addSkills(t, "-d", skillsDir, bareURL)
 
 		// Act
-		out, err := runSkills(t, "remove", "-y", "-d", skillsDir, "gke-*")
+		out, err := runSkills(t, "remove", "-y", "-d", skillsDir, "spec-*")
 		// Assert
 		if err != nil {
 			t.Fatalf("remove error: %v\n%s", err, out)
 		}
 
 		entries, _ := os.ReadDir(skillsDir)
-		if len(entries) != 1 || entries[0].Name() != "gcs" {
-			t.Errorf("left %v, want only gcs", entries)
+		if len(entries) != 1 || entries[0].Name() != "beta" {
+			t.Errorf("left %v, want only beta", entries)
 		}
 	})
 
-	t.Run("when a pattern is malformed, remove fails as a usage error", func(t *testing.T) {
+	t.Run("パターンが不正なとき、削除は使い方の誤りとして失敗する", func(t *testing.T) {
 		t.Parallel()
 		// Act
-		_, err := runSkills(t, "remove", "-y", "-d", t.TempDir(), "gke-[")
+		_, err := runSkills(t, "remove", "-y", "-d", t.TempDir(), "spec-[")
 
 		// Assert
 		if !strings.Contains(err.Error(), "syntax error in pattern") {

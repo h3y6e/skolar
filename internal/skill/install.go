@@ -35,10 +35,10 @@ type replacementTxn struct {
 	applied []appliedSkillReplacement
 }
 
-// InstallSkills copies discovered skills to skillsDir and updates the lockfile.
+// InstallSkills は探索したスキルを skillsDir にコピーしてロックファイルを更新する
 func InstallSkills(skills []DiscoveredSkill, ref SourceRef, layout lock.Layout) (err error) {
 	if len(skills) == 0 {
-		return errors.New("no skills to install")
+		return errors.New("インストールするスキルがありません")
 	}
 
 	lf, err := layout.ReadLockFile()
@@ -50,7 +50,7 @@ func InstallSkills(skills []DiscoveredSkill, ref SourceRef, layout lock.Layout) 
 	for i, s := range skills {
 		hash, err := s.Hash()
 		if err != nil {
-			return fmt.Errorf("hash %q: %w", s.Name, err)
+			return fmt.Errorf("%q のハッシュの計算: %w", s.Name, err)
 		}
 
 		replacements[i] = skillReplacement{Name: s.Name, Source: s.FS, Style: vercelStyle}
@@ -74,23 +74,23 @@ func InstallSkills(skills []DiscoveredSkill, ref SourceRef, layout lock.Layout) 
 	}
 
 	if err := lock.WriteFile(layout.LockPath(), lf); err != nil {
-		return errors.Join(fmt.Errorf("write lockfile: %w", err), tx.Rollback())
+		return errors.Join(fmt.Errorf("ロックファイルの書き込み: %w", err), tx.Rollback())
 	}
 
 	return nil
 }
 
-// InstallTrackedSkills copies skills discovered in snap to the destination
-// directory, injecting gh-compatible source metadata into each SKILL.md. No
-// lockfile is written; the frontmatter metadata is the install record, as
-// with gh skill install. Only github sources are supported.
+// InstallTrackedSkills は snap で探索したスキルをインストール先のディレクトリにコピーし、
+// gh 互換のソースのメタデータを各 SKILL.md に注入する。ロックファイルは書かない。
+// gh skill install と同様にフロントマターのメタデータがインストールの記録になる。
+// 対応するのは github のソースだけである
 func InstallTrackedSkills(skills []DiscoveredSkill, snap git.Snapshot, ref SourceRef, layout lock.Layout) (err error) {
 	if len(skills) == 0 {
-		return errors.New("no skills to install")
+		return errors.New("インストールするスキルがありません")
 	}
 
 	if ref.SourceType != lock.SourceGitHub {
-		return fmt.Errorf("gh skill format supports only github sources, got %q", ref.SourceType)
+		return fmt.Errorf("gh skill 形式が対応するのは github のソースだけです (%q)", ref.SourceType)
 	}
 
 	replacements := make([]skillReplacement, len(skills))
@@ -108,7 +108,7 @@ func InstallTrackedSkills(skills []DiscoveredSkill, snap git.Snapshot, ref Sourc
 			Pinned:  ref.Ref,
 		})
 		if err != nil {
-			return fmt.Errorf("inject metadata for %q: %w", s.Name, err)
+			return fmt.Errorf("%q のメタデータの注入: %w", s.Name, err)
 		}
 
 		replacements[i] = skillReplacement{Name: s.Name, Source: source, Style: ghStyle}
@@ -123,9 +123,9 @@ func InstallTrackedSkills(skills []DiscoveredSkill, snap git.Snapshot, ref Sourc
 	return tx.Apply()
 }
 
-// ApplyCandidateUpdates replaces the skills of candidates with their staged
-// content and records the new hashes in lf. On lockfile write failure,
-// filesystem changes are rolled back.
+// ApplyCandidateUpdates は candidates のスキルをステージ済みの内容で置き換え、
+// 新しいハッシュを lf に記録する。ロックファイルの書き込みに失敗したら
+// ファイルシステムの変更をロールバックする
 func ApplyCandidateUpdates(lf lock.File, candidates []UpdateCandidate, layout lock.Layout) (err error) {
 	replacements := make([]skillReplacement, 0, len(candidates))
 	for _, c := range candidates {
@@ -152,14 +152,14 @@ func ApplyCandidateUpdates(lf lock.File, candidates []UpdateCandidate, layout lo
 	}
 
 	if err := lock.WriteFile(layout.LockPath(), lf); err != nil {
-		return errors.Join(fmt.Errorf("write updated lockfile: %w", err), tx.Rollback())
+		return errors.Join(fmt.Errorf("更新後のロックファイルの書き込み: %w", err), tx.Rollback())
 	}
 
 	return nil
 }
 
-// ReplaceSkill atomically replaces an installed skill directory with source,
-// as gh skill installs it.
+// ReplaceSkill はインストール済みのスキルのディレクトリを source でアトミックに置き換える。
+// gh skill のインストールと同じ方式である
 func ReplaceSkill(skillName string, source fs.FS, layout lock.Layout) (err error) {
 	tx, err := stageSkillReplacements(layout, []skillReplacement{{
 		Name:   skillName,
@@ -176,11 +176,11 @@ func ReplaceSkill(skillName string, source fs.FS, layout lock.Layout) (err error
 
 func stageSkillReplacements(layout lock.Layout, replacements []skillReplacement) (*replacementTxn, error) {
 	if len(replacements) == 0 {
-		return nil, errors.New("no skill changes to apply")
+		return nil, errors.New("適用するスキルの変更がありません")
 	}
 
 	if err := os.MkdirAll(layout.Dir, 0o755); err != nil {
-		return nil, fmt.Errorf("create destination directory %q: %w", layout.Dir, err)
+		return nil, fmt.Errorf("インストール先のディレクトリ %q の作成: %w", layout.Dir, err)
 	}
 
 	tx := &replacementTxn{layout: layout}
@@ -191,11 +191,11 @@ func stageSkillReplacements(layout lock.Layout, replacements []skillReplacement)
 		}
 
 		if err != nil {
-			return nil, errors.Join(fmt.Errorf("create staged directory for %q: %w", replacement.Name, err), tx.Cleanup())
+			return nil, errors.Join(fmt.Errorf("%q のステージ用ディレクトリの作成: %w", replacement.Name, err), tx.Cleanup())
 		}
 
 		if err := copyDir(replacement.Source, stagedDir, replacement.Style); err != nil {
-			return nil, errors.Join(fmt.Errorf("stage skill %q: %w", replacement.Name, err), tx.Cleanup())
+			return nil, errors.Join(fmt.Errorf("スキル %q のステージ: %w", replacement.Name, err), tx.Cleanup())
 		}
 
 		tx.staged = append(tx.staged, stagedSkillReplacement{
@@ -229,7 +229,7 @@ func (tx *replacementTxn) Rollback() error {
 
 	for _, applied := range slices.Backward(tx.applied) {
 		if err := os.RemoveAll(applied.Dir); err != nil && !errors.Is(err, os.ErrNotExist) {
-			errs = append(errs, fmt.Errorf("remove applied skill %q: %w", applied.Name, err))
+			errs = append(errs, fmt.Errorf("適用済みのスキル %q の削除: %w", applied.Name, err))
 			continue
 		}
 
@@ -238,7 +238,7 @@ func (tx *replacementTxn) Rollback() error {
 		}
 
 		if err := os.Rename(applied.BackupDir, applied.Dir); err != nil {
-			errs = append(errs, fmt.Errorf("restore backup for %q: %w", applied.Name, err))
+			errs = append(errs, fmt.Errorf("%q のバックアップの復元: %w", applied.Name, err))
 		}
 	}
 
@@ -256,7 +256,7 @@ func (tx *replacementTxn) Cleanup() error {
 		}
 
 		if err := os.RemoveAll(replacement.StagedDir); err != nil && !errors.Is(err, os.ErrNotExist) {
-			errs = append(errs, fmt.Errorf("cleanup staged skill %q: %w", replacement.Name, err))
+			errs = append(errs, fmt.Errorf("ステージ済みのスキル %q の後始末: %w", replacement.Name, err))
 		}
 	}
 
@@ -266,7 +266,7 @@ func (tx *replacementTxn) Cleanup() error {
 		}
 
 		if err := os.RemoveAll(applied.BackupDir); err != nil && !errors.Is(err, os.ErrNotExist) {
-			errs = append(errs, fmt.Errorf("cleanup backup for %q: %w", applied.Name, err))
+			errs = append(errs, fmt.Errorf("%q のバックアップの後始末: %w", applied.Name, err))
 		}
 	}
 
@@ -280,16 +280,16 @@ func (tx *replacementTxn) swapIn(replacement stagedSkillReplacement) (string, er
 	if _, err := os.Stat(dst); err == nil {
 		path, err := tempPath(tx.layout.Dir, "."+replacement.Name+".backup-*")
 		if err != nil {
-			return "", fmt.Errorf("prepare backup for %q: %w", replacement.Name, err)
+			return "", fmt.Errorf("%q のバックアップの準備: %w", replacement.Name, err)
 		}
 
 		if err := os.Rename(dst, path); err != nil {
-			return "", fmt.Errorf("backup existing skill %q: %w", replacement.Name, err)
+			return "", fmt.Errorf("既存のスキル %q のバックアップ: %w", replacement.Name, err)
 		}
 
 		backupDir = path
 	} else if !errors.Is(err, os.ErrNotExist) {
-		return "", fmt.Errorf("stat existing skill %q: %w", replacement.Name, err)
+		return "", fmt.Errorf("既存のスキル %q の stat: %w", replacement.Name, err)
 	}
 
 	if err := os.Rename(replacement.StagedDir, dst); err != nil {
@@ -297,7 +297,7 @@ func (tx *replacementTxn) swapIn(replacement stagedSkillReplacement) (string, er
 			_ = os.Rename(backupDir, dst)
 		}
 
-		return "", fmt.Errorf("activate staged skill %q: %w", replacement.Name, err)
+		return "", fmt.Errorf("ステージ済みのスキル %q の有効化: %w", replacement.Name, err)
 	}
 
 	return backupDir, nil

@@ -52,7 +52,7 @@ func runMain(t *testing.T, env []string, args ...string) (string, string, int) {
 func TestExitStatus(t *testing.T) {
 	t.Parallel()
 
-	t.Run("when the command is unknown, running it suggests a command on stderr and exits 2", func(t *testing.T) {
+	t.Run("不明なコマンドを指定したとき、実行すると stderr に候補を出力して 2 で終了する", func(t *testing.T) {
 		t.Parallel()
 
 		// Act
@@ -67,12 +67,12 @@ func TestExitStatus(t *testing.T) {
 			t.Errorf("stdout = %q, want empty", stdout)
 		}
 
-		if !strings.Contains(stderr, "Did you mean this?\n\tadd") || !strings.Contains(stderr, "--help") {
+		if !strings.Contains(stderr, "もしかして:\n\tadd") || !strings.Contains(stderr, "--help") {
 			t.Errorf("stderr = %q, want a suggestion and a --help hint", stderr)
 		}
 	})
 
-	t.Run("when a flag is unknown, running it exits 2", func(t *testing.T) {
+	t.Run("不明なフラグを指定したとき、実行すると 2 で終了する", func(t *testing.T) {
 		t.Parallel()
 
 		// Act
@@ -84,7 +84,7 @@ func TestExitStatus(t *testing.T) {
 		}
 	})
 
-	t.Run("when a command fails, running it prints the error on stderr and exits 1", func(t *testing.T) {
+	t.Run("コマンドが失敗したとき、実行すると stderr にエラーを出力して 1 で終了する", func(t *testing.T) {
 		t.Parallel()
 
 		// Arrange
@@ -94,12 +94,12 @@ func TestExitStatus(t *testing.T) {
 		_, stderr, code := runMain(t, nil, "remove", "-y", "-d", skillsDir, "missing")
 
 		// Assert
-		if code != 1 || !strings.Contains(stderr, `error: skill "missing" not found`) || !strings.Contains(stderr, "fix: skolar list --dir "+skillsDir) {
+		if code != 1 || !strings.Contains(stderr, `error: スキル "missing" が`) || !strings.Contains(stderr, "fix: skolar list --dir "+skillsDir) {
 			t.Errorf("exit = %d, stderr = %q, want 1, the cause, and a fix", code, stderr)
 		}
 	})
 
-	t.Run("when confirmation is needed without a TTY or --yes, running it exits 2 with the fix", func(t *testing.T) {
+	t.Run("TTY も --yes もなく確認が必要なとき、実行すると fix を表示して 2 で終了する", func(t *testing.T) {
 		t.Parallel()
 
 		// Arrange
@@ -110,7 +110,7 @@ func TestExitStatus(t *testing.T) {
 		_, stderr, code := runMain(t, nil, "remove", "-d", skillsDir, "alpha")
 
 		// Assert
-		if code != 2 || !strings.Contains(stderr, "fix: re-run with --yes") {
+		if code != 2 || !strings.Contains(stderr, "fix: --yes を付けて再実行してください") {
 			t.Errorf("exit = %d, stderr = %q, want 2 and the --yes fix", code, stderr)
 		}
 	})
@@ -125,8 +125,8 @@ func TestUsageErrorRecord(t *testing.T) {
 		args []string
 		key  string
 	}{
-		{"when --json precedes an unknown flag, listing prints an error record", nil, []string{"list", "--json", "--nope"}, "skills"},
-		{"when SKOLAR_JSON is set and an argument is extra, updating prints an error record", []string{"SKOLAR_JSON=true"}, []string{"update", "a", "b"}, "results"},
+		{"--json の後に不明なフラグを指定したとき、一覧表示はエラーレコードを出力する", nil, []string{"list", "--json", "--nope"}, "skills"},
+		{"SKOLAR_JSON を設定し引数が余分なとき、更新はエラーレコードを出力する", []string{"SKOLAR_JSON=true"}, []string{"update", "a", "b"}, "results"},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {

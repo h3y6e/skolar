@@ -7,10 +7,6 @@ import (
 	"github.com/h3y6e/skolar/internal/testutil"
 )
 
-// initTaggedRepo creates a bare repo on branch main with:
-//   - tags v1.0.0, v1.9.0, v2.0.0-rc.1 (prerelease), note (non-semver),
-//     annotated (an annotated tag)
-//   - branches feature/install and collide (a tag named collide also exists)
 func initTaggedRepo(t *testing.T) string {
 	t.Helper()
 
@@ -41,7 +37,7 @@ func initTaggedRepo(t *testing.T) string {
 func TestResolveLatest(t *testing.T) {
 	t.Parallel()
 
-	t.Run("when an explicit branch is given, resolving returns the branch ref", func(t *testing.T) {
+	t.Run("明示的にブランチを渡したとき、解決はそのブランチの ref を返す", func(t *testing.T) {
 		t.Parallel()
 
 		// Arrange
@@ -59,7 +55,7 @@ func TestResolveLatest(t *testing.T) {
 		}
 	})
 
-	t.Run("when an explicit tag is given, resolving returns the tag ref", func(t *testing.T) {
+	t.Run("明示的にタグを渡したとき、解決はそのタグの ref を返す", func(t *testing.T) {
 		t.Parallel()
 
 		// Arrange
@@ -77,7 +73,7 @@ func TestResolveLatest(t *testing.T) {
 		}
 	})
 
-	t.Run("when an explicit ref matches nothing, resolving treats it as a commit SHA", func(t *testing.T) {
+	t.Run("明示的な ref がどれにも一致しないとき、解決はそれをコミット SHA として扱う", func(t *testing.T) {
 		t.Parallel()
 
 		// Arrange
@@ -96,7 +92,7 @@ func TestResolveLatest(t *testing.T) {
 		}
 	})
 
-	t.Run("when no ref is given, resolving returns the latest semver tag", func(t *testing.T) {
+	t.Run("ref を渡さないとき、解決は最新の semver タグを返す", func(t *testing.T) {
 		t.Parallel()
 
 		// Arrange
@@ -114,7 +110,7 @@ func TestResolveLatest(t *testing.T) {
 		}
 	})
 
-	t.Run("when no ref is given and the repo has no semver tags, resolving returns the default branch", func(t *testing.T) {
+	t.Run("ref を渡さずリポジトリに semver タグがないとき、解決はデフォルトブランチを返す", func(t *testing.T) {
 		t.Parallel()
 
 		// Arrange
@@ -136,7 +132,7 @@ func TestResolveLatest(t *testing.T) {
 func TestResolveLatestTie(t *testing.T) {
 	t.Parallel()
 
-	t.Run("when two tags rank as the same version, resolving always picks the same one", func(t *testing.T) {
+	t.Run("二つのタグが同じバージョンとして順位づけられるとき、解決は常に同じものを選ぶ", func(t *testing.T) {
 		t.Parallel()
 
 		// Arrange
@@ -162,7 +158,7 @@ func TestResolveLatestTie(t *testing.T) {
 func TestResolveDefault(t *testing.T) {
 	t.Parallel()
 
-	t.Run("when no ref is given, resolving returns the default branch despite semver tags", func(t *testing.T) {
+	t.Run("ref を渡さないとき、semver タグがあっても解決はデフォルトブランチを返す", func(t *testing.T) {
 		t.Parallel()
 
 		// Arrange

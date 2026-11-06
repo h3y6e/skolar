@@ -40,7 +40,7 @@ func updatedNames(t *testing.T, args ...string) []string {
 func TestUpdateFlags(t *testing.T) {
 	t.Parallel()
 
-	t.Run("--skill flag is registered", func(t *testing.T) {
+	t.Run("--skill フラグが登録されている", func(t *testing.T) {
 		t.Parallel()
 
 		root := cmd.NewRootCmd("test")
@@ -52,7 +52,7 @@ func TestUpdateFlags(t *testing.T) {
 		}
 	})
 
-	t.Run("-s shorthand works", func(t *testing.T) {
+	t.Run("-s の短縮形が使える", func(t *testing.T) {
 		t.Parallel()
 
 		root := cmd.NewRootCmd("test")
@@ -64,7 +64,7 @@ func TestUpdateFlags(t *testing.T) {
 		}
 	})
 
-	t.Run("--dir flag is registered", func(t *testing.T) {
+	t.Run("--dir フラグが登録されている", func(t *testing.T) {
 		t.Parallel()
 
 		root := cmd.NewRootCmd("test")
@@ -76,7 +76,7 @@ func TestUpdateFlags(t *testing.T) {
 		}
 	})
 
-	t.Run("--yes flag is registered", func(t *testing.T) {
+	t.Run("--yes フラグが登録されている", func(t *testing.T) {
 		t.Parallel()
 
 		root := cmd.NewRootCmd("test")
@@ -97,12 +97,11 @@ func TestUpdateSkillFilter(t *testing.T) {
 		"skills/beta/SKILL.md":  "# Beta\n",
 	})
 
-	t.Run("--skill limits output to specified skill only", func(t *testing.T) {
+	t.Run("--skill を指定したとき、指定したスキルだけが出力される", func(t *testing.T) {
 		t.Parallel()
 
 		skillsDir := filepath.Join(t.TempDir(), ".agents", "skills")
 
-		// Install both skills.
 		root1 := cmd.NewRootCmd("test")
 		root1.SetArgs([]string{"add", "-d", skillsDir, bareURL})
 
@@ -119,7 +118,7 @@ func TestUpdateSkillFilter(t *testing.T) {
 		}
 	})
 
-	t.Run("updates only skills installed in the selected dir", func(t *testing.T) {
+	t.Run("ディレクトリを選択したとき、そのディレクトリのスキルだけを更新する", func(t *testing.T) {
 		t.Parallel()
 
 		rootDir := t.TempDir()
@@ -167,7 +166,7 @@ func TestUpdateSkillFilter(t *testing.T) {
 		}
 
 		got := out.String()
-		if !strings.Contains(got, "  M  alpha  +1 -1 (1 file)\n  A  1 not installed\nupdated 1\n") {
+		if !strings.Contains(got, "  M  alpha  +1 -1 (1 ファイル)\n  A  1 件が未インストール\n1 件を更新\n") {
 			t.Errorf("expected alpha updated and beta listed as not installed, got: %q", got)
 		}
 
@@ -185,12 +184,11 @@ func TestUpdateSkillFilter(t *testing.T) {
 		}
 	})
 
-	t.Run("without --skill shows all skills", func(t *testing.T) {
+	t.Run("--skill を指定しないとき、すべてのスキルを表示する", func(t *testing.T) {
 		t.Parallel()
 
 		skillsDir := filepath.Join(t.TempDir(), ".agents", "skills")
 
-		// Install both skills.
 		root1 := cmd.NewRootCmd("test")
 		root1.SetArgs([]string{"add", "-d", skillsDir, bareURL})
 
@@ -207,10 +205,10 @@ func TestUpdateSkillFilter(t *testing.T) {
 		}
 	})
 
-	t.Run("reports nothing to update when lockfile is missing", func(t *testing.T) {
+	t.Run("ロックファイルがないとき、更新対象なしと報告する", func(t *testing.T) {
 		t.Parallel()
 
-		// Arrange: gh-managed destinations have no lockfile at all.
+		// Arrange
 		skillsDir := filepath.Join(t.TempDir(), ".agents", "skills")
 
 		// Act
@@ -225,17 +223,16 @@ func TestUpdateSkillFilter(t *testing.T) {
 			t.Fatalf("update: %v", err)
 		}
 
-		if !strings.Contains(out.String(), "no installed skills to update") {
-			t.Errorf("output = %q, want %q", out.String(), "no installed skills to update")
+		if !strings.Contains(out.String(), "更新するインストール済みのスキルがありません") {
+			t.Errorf("output = %q, want %q", out.String(), "更新するインストール済みのスキルがありません")
 		}
 	})
 
-	t.Run("detects update-available when lockfile hash differs from upstream", func(t *testing.T) {
+	t.Run("ロックファイルのハッシュが上流と異なるとき、更新ありと判定する", func(t *testing.T) {
 		t.Parallel()
 
 		skillsDir := filepath.Join(t.TempDir(), ".agents", "skills")
 
-		// Install skills.
 		root1 := cmd.NewRootCmd("test")
 		root1.SetArgs([]string{"add", "-d", skillsDir, bareURL})
 
@@ -243,7 +240,6 @@ func TestUpdateSkillFilter(t *testing.T) {
 			t.Fatalf("add error: %v", err)
 		}
 
-		// Tamper lockfile hash to simulate outdated install.
 		lockPath := lock.FilePath(skillsDir)
 
 		lf, err := lock.ReadFile(lockPath)
@@ -270,12 +266,12 @@ func TestUpdateSkillFilter(t *testing.T) {
 		}
 
 		got := out.String()
-		if !strings.Contains(got, "updated") {
+		if !strings.Contains(got, "件を更新") {
 			t.Errorf("expected 'updated' in output (stale hash should trigger update), got: %q", got)
 		}
 	})
 
-	t.Run("source argument filters to entries from that source", func(t *testing.T) {
+	t.Run("ソース引数を指定したとき、そのソースのエントリだけに絞り込まれる", func(t *testing.T) {
 		t.Parallel()
 
 		bareURL2 := testutil.BareRepo(t, map[string]string{
@@ -284,7 +280,6 @@ func TestUpdateSkillFilter(t *testing.T) {
 
 		skillsDir := filepath.Join(t.TempDir(), ".agents", "skills")
 
-		// Install from first source.
 		root1 := cmd.NewRootCmd("test")
 		root1.SetArgs([]string{"add", "-d", skillsDir, bareURL})
 
@@ -292,7 +287,6 @@ func TestUpdateSkillFilter(t *testing.T) {
 			t.Fatalf("add 1 error: %v", err)
 		}
 
-		// Install from second source.
 		root2 := cmd.NewRootCmd("test")
 		root2.SetArgs([]string{"add", "-d", skillsDir, bareURL2})
 
@@ -300,7 +294,6 @@ func TestUpdateSkillFilter(t *testing.T) {
 			t.Fatalf("add 2 error: %v", err)
 		}
 
-		// Update only from the second source.
 		var out bytes.Buffer
 
 		root3 := cmd.NewRootCmd("test")
@@ -312,7 +305,6 @@ func TestUpdateSkillFilter(t *testing.T) {
 		}
 
 		got := out.String()
-		// Should not mention alpha/beta from first source.
 		if strings.Contains(got, "alpha") {
 			t.Errorf("output should not mention alpha when source is second repo, got: %q", got)
 		}
@@ -322,7 +314,7 @@ func TestUpdateSkillFilter(t *testing.T) {
 		}
 	})
 
-	t.Run("source argument with ref filters to matching ref only", func(t *testing.T) {
+	t.Run("ref 付きのソース引数を指定したとき、一致する ref だけに絞り込まれる", func(t *testing.T) {
 		t.Parallel()
 
 		bareURLWithRefs := initBareRepoWithSplitRefSkills(t)
@@ -369,7 +361,7 @@ func TestUpdateSkillFilter(t *testing.T) {
 			t.Errorf("output should not mention alpha when ref is feature/install, got: %q", got)
 		}
 
-		if !strings.Contains(got, "M  beta") || !strings.HasSuffix(got, "updated 1\n") {
+		if !strings.Contains(got, "M  beta") || !strings.HasSuffix(got, "1 件を更新\n") {
 			t.Errorf("expected beta to be updated, got: %q", got)
 		}
 
@@ -415,7 +407,6 @@ func TestUpdateNoChanges(t *testing.T) {
 
 	skillsDir := filepath.Join(t.TempDir(), ".agents", "skills")
 
-	// Install.
 	root1 := cmd.NewRootCmd("test")
 	root1.SetArgs([]string{"add", "-d", skillsDir, bareURL})
 
@@ -423,7 +414,6 @@ func TestUpdateNoChanges(t *testing.T) {
 		t.Fatalf("add error: %v", err)
 	}
 
-	// Update with no changes upstream — should show up-to-date.
 	var out bytes.Buffer
 
 	root2 := cmd.NewRootCmd("test")
@@ -435,33 +425,29 @@ func TestUpdateNoChanges(t *testing.T) {
 	}
 
 	got := out.String()
-	if !strings.Contains(got, "up-to-date") {
-		t.Errorf("expected 'up-to-date' in output, got: %q", got)
+	if !strings.Contains(got, "最新") {
+		t.Errorf("expected '最新' in output, got: %q", got)
 	}
 
-	// Verify lockfile and files are unchanged.
 	if _, err := os.Stat(filepath.Join(skillsDir, "alpha", "SKILL.md")); err != nil {
 		t.Errorf("alpha/SKILL.md should still exist: %v", err)
 	}
 }
 
 func TestUpdateApply(t *testing.T) {
-	// Not parallel: subtests override package-level IsTTY.
 	bareURL := testutil.BareRepo(t, map[string]string{
 		"skills/alpha/SKILL.md": "# Alpha v2\n",
 		"skills/beta/SKILL.md":  "# Beta\n",
 	})
 
-	t.Run("yes flag applies updates and refreshes lockfile", func(t *testing.T) {
+	t.Run("--yes を指定したとき、更新を適用してロックファイルを更新する", func(t *testing.T) {
 		t.Parallel()
 
 		skillsDir := filepath.Join(t.TempDir(), ".agents", "skills")
 
-		// Manually install with old content and stale lockfile hash.
 		testutil.WriteFiles(t, skillsDir, map[string]string{"alpha/SKILL.md": "# Alpha v1\n"})
 		testutil.WriteFiles(t, skillsDir, map[string]string{"beta/SKILL.md": "# Beta\n"})
 
-		// Parse the source to get canonical form.
 		lf := lock.File{
 			Version: 1,
 			Skills: map[string]lock.Entry{
@@ -475,7 +461,6 @@ func TestUpdateApply(t *testing.T) {
 			t.Fatalf("write lockfile: %v", err)
 		}
 
-		// Run update with -y.
 		var out bytes.Buffer
 
 		root := cmd.NewRootCmd("test")
@@ -486,7 +471,6 @@ func TestUpdateApply(t *testing.T) {
 			t.Fatalf("update error: %v", err)
 		}
 
-		// Verify alpha was updated.
 		data, err := os.ReadFile(filepath.Join(skillsDir, "alpha", "SKILL.md"))
 		if err != nil {
 			t.Fatalf("read alpha SKILL.md: %v", err)
@@ -496,7 +480,6 @@ func TestUpdateApply(t *testing.T) {
 			t.Errorf("alpha content = %q, want %q", string(data), "# Alpha v2\n")
 		}
 
-		// Verify lockfile hashes are refreshed.
 		updatedLF, err := lock.ReadFile(lockPath)
 		if err != nil {
 			t.Fatalf("read updated lockfile: %v", err)
@@ -512,8 +495,7 @@ func TestUpdateApply(t *testing.T) {
 		}
 	})
 
-	t.Run("non-interactive mode shows preview without applying", func(t *testing.T) {
-		// Cannot be parallel: overrides package-level IsTTY.
+	t.Run("非対話モードのとき、適用せずにプレビューを表示する", func(t *testing.T) {
 		origIsTTY := cmd.IsTTY
 		cmd.IsTTY = func() bool { return false }
 
@@ -521,7 +503,6 @@ func TestUpdateApply(t *testing.T) {
 
 		skillsDir := filepath.Join(t.TempDir(), ".agents", "skills")
 
-		// Install with stale hash.
 		testutil.WriteFiles(t, skillsDir, map[string]string{"alpha/SKILL.md": "# Alpha v1\n"})
 
 		lf := lock.File{
@@ -536,19 +517,17 @@ func TestUpdateApply(t *testing.T) {
 			t.Fatalf("write lockfile: %v", err)
 		}
 
-		// Run update WITHOUT -y (non-interactive since tests aren't TTY).
 		var out bytes.Buffer
 
 		root := cmd.NewRootCmd("test")
 		root.SetOut(&out)
 		root.SetArgs([]string{"update", "-d", skillsDir})
+
 		err := root.Execute()
-		// Non-interactive preview should return an error to signal no-apply.
 		if err == nil {
 			t.Fatal("expected error in non-interactive mode without -y")
 		}
 
-		// Files should NOT have been changed.
 		data, err2 := os.ReadFile(filepath.Join(skillsDir, "alpha", "SKILL.md"))
 		if err2 != nil {
 			t.Fatalf("read alpha: %v", err2)
@@ -558,7 +537,6 @@ func TestUpdateApply(t *testing.T) {
 			t.Errorf("alpha should not have been updated, got: %q", string(data))
 		}
 
-		// Lockfile should be unchanged.
 		updatedLF, err2 := lock.ReadFile(lockPath)
 		if err2 != nil {
 			t.Fatalf("read lockfile: %v", err2)
@@ -569,12 +547,11 @@ func TestUpdateApply(t *testing.T) {
 		}
 	})
 
-	t.Run("yes flag with skill filter applies only filtered skill", func(t *testing.T) {
+	t.Run("--yes とスキルの絞り込みを指定したとき、絞り込んだスキルだけを更新する", func(t *testing.T) {
 		t.Parallel()
 
 		skillsDir := filepath.Join(t.TempDir(), ".agents", "skills")
 
-		// Install with stale hashes for both.
 		testutil.WriteFiles(t, skillsDir, map[string]string{"alpha/SKILL.md": "# Alpha v1\n"})
 		testutil.WriteFiles(t, skillsDir, map[string]string{"beta/SKILL.md": "# Beta old\n"})
 
@@ -591,7 +568,6 @@ func TestUpdateApply(t *testing.T) {
 			t.Fatalf("write lockfile: %v", err)
 		}
 
-		// Update only alpha.
 		root := cmd.NewRootCmd("test")
 		root.SetArgs([]string{"update", "-s", "alpha", "-y", "-d", skillsDir})
 
@@ -599,7 +575,6 @@ func TestUpdateApply(t *testing.T) {
 			t.Fatalf("update error: %v", err)
 		}
 
-		// Alpha should be updated.
 		data, err := os.ReadFile(filepath.Join(skillsDir, "alpha", "SKILL.md"))
 		if err != nil {
 			t.Fatalf("read alpha: %v", err)
@@ -609,7 +584,6 @@ func TestUpdateApply(t *testing.T) {
 			t.Errorf("alpha = %q, want %q", string(data), "# Alpha v2\n")
 		}
 
-		// Beta should NOT be updated (still old content).
 		data, err = os.ReadFile(filepath.Join(skillsDir, "beta", "SKILL.md"))
 		if err != nil {
 			t.Fatalf("read beta: %v", err)
@@ -619,7 +593,6 @@ func TestUpdateApply(t *testing.T) {
 			t.Errorf("beta = %q, want %q (should not be updated)", string(data), "# Beta old\n")
 		}
 
-		// Lockfile: alpha hash should be updated, beta should remain stale.
 		updatedLF, err := lock.ReadFile(lockPath)
 		if err != nil {
 			t.Fatalf("read lockfile: %v", err)
@@ -636,8 +609,7 @@ func TestUpdateApply(t *testing.T) {
 }
 
 func TestUpdateIntegration(t *testing.T) {
-	// Not parallel: subtests override package-level IsTTY.
-	t.Run("up-to-date skills are not modified during update", func(t *testing.T) {
+	t.Run("最新のスキルがあるとき、更新しても変更されない", func(t *testing.T) {
 		t.Parallel()
 
 		bareURL := testutil.BareRepo(t, map[string]string{
@@ -647,7 +619,6 @@ func TestUpdateIntegration(t *testing.T) {
 
 		skillsDir := filepath.Join(t.TempDir(), ".agents", "skills")
 
-		// Install normally.
 		root1 := cmd.NewRootCmd("test")
 		root1.SetArgs([]string{"add", "-d", skillsDir, bareURL})
 
@@ -655,7 +626,6 @@ func TestUpdateIntegration(t *testing.T) {
 			t.Fatalf("add error: %v", err)
 		}
 
-		// Record alpha's mod time before update.
 		alphaPath := filepath.Join(skillsDir, "alpha", "SKILL.md")
 
 		infoBefore, err := os.Stat(alphaPath)
@@ -663,7 +633,6 @@ func TestUpdateIntegration(t *testing.T) {
 			t.Fatalf("stat alpha: %v", err)
 		}
 
-		// Run update -y (no changes upstream).
 		var out bytes.Buffer
 
 		root2 := cmd.NewRootCmd("test")
@@ -675,15 +644,14 @@ func TestUpdateIntegration(t *testing.T) {
 		}
 
 		got := out.String()
-		if !strings.Contains(got, "up-to-date") {
-			t.Errorf("expected 'up-to-date' in output, got: %q", got)
+		if !strings.Contains(got, "最新") {
+			t.Errorf("expected '最新' in output, got: %q", got)
 		}
 
-		if strings.Contains(got, "updated") {
+		if strings.Contains(got, "件を更新") {
 			t.Errorf("no skill should have been updated, got: %q", got)
 		}
 
-		// Verify file was not touched.
 		infoAfter, err := os.Stat(alphaPath)
 		if err != nil {
 			t.Fatalf("stat alpha after: %v", err)
@@ -694,7 +662,7 @@ func TestUpdateIntegration(t *testing.T) {
 		}
 	})
 
-	t.Run("when a skill was removed upstream, updating keeps it and points to remove", func(t *testing.T) {
+	t.Run("スキルが上流で削除されたとき、更新は残して remove を案内する", func(t *testing.T) {
 		t.Parallel()
 
 		// Arrange
@@ -727,7 +695,7 @@ func TestUpdateIntegration(t *testing.T) {
 			t.Fatalf("update: %v", err)
 		}
 
-		if want := "  D  alpha  removed upstream\n  M  beta   +1 -1 (1 file)\nupdated 1\n"; !strings.HasSuffix(out.String(), want) {
+		if want := "  D  alpha  上流で削除\n  M  beta   +1 -1 (1 ファイル)\n1 件を更新\n"; !strings.HasSuffix(out.String(), want) {
 			t.Errorf("stdout = %q, want suffix %q", out.String(), want)
 		}
 
@@ -740,7 +708,7 @@ func TestUpdateIntegration(t *testing.T) {
 		}
 	})
 
-	t.Run("when a source has skills not installed, a directory already there is not counted and the hint keeps the ref", func(t *testing.T) {
+	t.Run("ソースに未インストールのスキルがあるとき、ディレクトリが既にあるものは数えずヒントは ref を保つ", func(t *testing.T) {
 		t.Parallel()
 
 		// Arrange
@@ -773,7 +741,7 @@ func TestUpdateIntegration(t *testing.T) {
 			t.Fatalf("update: %v", err)
 		}
 
-		if !strings.HasSuffix(out.String(), "  A  1 not installed\n") {
+		if !strings.HasSuffix(out.String(), "  A  1 件が未インストール\n") {
 			t.Errorf("stdout = %q, want only gamma counted as not installed", out.String())
 		}
 
@@ -782,8 +750,7 @@ func TestUpdateIntegration(t *testing.T) {
 		}
 	})
 
-	t.Run("non-interactive preview lists all candidates without modifying files", func(t *testing.T) {
-		// Cannot be parallel: overrides IsTTY.
+	t.Run("非対話モードのとき、ファイルを変更せずにすべての候補を一覧表示する", func(t *testing.T) {
 		origIsTTY := cmd.IsTTY
 		cmd.IsTTY = func() bool { return false }
 
@@ -796,7 +763,6 @@ func TestUpdateIntegration(t *testing.T) {
 
 		skillsDir := filepath.Join(t.TempDir(), ".agents", "skills")
 
-		// Install with stale hashes.
 		testutil.WriteFiles(t, skillsDir, map[string]string{"alpha/SKILL.md": "# Alpha v1\n"})
 		testutil.WriteFiles(t, skillsDir, map[string]string{"beta/SKILL.md": "# Beta v1\n"})
 
@@ -829,7 +795,6 @@ func TestUpdateIntegration(t *testing.T) {
 			t.Errorf("preview should list all candidates, got: %q", got)
 		}
 
-		// Verify files are unchanged.
 		data, _ := os.ReadFile(filepath.Join(skillsDir, "alpha", "SKILL.md"))
 		if string(data) != "# Alpha v1\n" {
 			t.Error("alpha should not have been modified in preview mode")
@@ -840,7 +805,6 @@ func TestUpdateIntegration(t *testing.T) {
 			t.Error("beta should not have been modified in preview mode")
 		}
 
-		// Lockfile unchanged.
 		updatedLF, err := lock.ReadFile(lockPath)
 		if err != nil {
 			t.Fatal(err)

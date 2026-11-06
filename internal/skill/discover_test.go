@@ -57,7 +57,7 @@ func discoveredPaths(t *testing.T, skills []skill.DiscoveredSkill, defaultOnly b
 func TestDiscoverSkillsLayouts(t *testing.T) {
 	t.Parallel()
 
-	t.Run("when a repository mixes the layouts either tool supports, every skill is found at its repository path", func(t *testing.T) {
+	t.Run("リポジトリがどちらのツールが対応するレイアウトも含むとき、すべてのスキルがリポジトリ内のパスで見つかる", func(t *testing.T) {
 		t.Parallel()
 		// Arrange
 		files := map[string]string{"SKILL.md": fm("root-skill")}
@@ -80,7 +80,7 @@ func TestDiscoverSkillsLayouts(t *testing.T) {
 		}
 	})
 
-	t.Run("when the root holds a SKILL.md, the defaults are the root skill and gh skill's layouts", func(t *testing.T) {
+	t.Run("ルートに SKILL.md があるとき、既定はルートのスキルと gh skill のレイアウトになる", func(t *testing.T) {
 		t.Parallel()
 		// Arrange
 		files := map[string]string{"SKILL.md": fm("root-skill")}
@@ -100,7 +100,7 @@ func TestDiscoverSkillsLayouts(t *testing.T) {
 		}
 	})
 
-	t.Run("when the root holds no SKILL.md, the defaults follow vercel-labs/skills' search directories", func(t *testing.T) {
+	t.Run("ルートに SKILL.md がないとき、既定は vercel-labs/skills の探索ディレクトリに従う", func(t *testing.T) {
 		t.Parallel()
 		// Arrange
 		root := writeRepo(t, mixedLayouts)
@@ -121,7 +121,7 @@ func TestDiscoverSkillsLayouts(t *testing.T) {
 		}
 	})
 
-	t.Run("when two directories declare the same name, the one vercel-labs/skills searches first wins", func(t *testing.T) {
+	t.Run("2 つのディレクトリが同じ名前を宣言するとき、vercel-labs/skills が先に探索するほうが採られる", func(t *testing.T) {
 		t.Parallel()
 		// Arrange
 		root := writeRepo(t, map[string]string{
@@ -141,7 +141,7 @@ func TestDiscoverSkillsLayouts(t *testing.T) {
 		}
 	})
 
-	t.Run("when a SKILL.md has no frontmatter name, the skill is named after its directory", func(t *testing.T) {
+	t.Run("SKILL.md のフロントマターに name がないとき、スキルはディレクトリ名で呼ばれる", func(t *testing.T) {
 		t.Parallel()
 		// Arrange
 		root := writeRepo(t, map[string]string{"skills/plain/SKILL.md": "# Plain\n"})
@@ -160,7 +160,7 @@ func TestDiscoverSkillsLayouts(t *testing.T) {
 }
 
 func TestDiscoverSkillsEdges(t *testing.T) {
-	t.Run("when a skill directory is named like a skipped directory, it is still found", func(t *testing.T) {
+	t.Run("スキルのディレクトリがスキップ対象のディレクトリと同名のとき、それでも見つかる", func(t *testing.T) {
 		t.Parallel()
 		// Arrange
 		root := writeRepo(t, map[string]string{"skills/build/SKILL.md": fm("build"), "skills/build/dist/SKILL.md": fm("hidden")})
@@ -177,7 +177,7 @@ func TestDiscoverSkillsEdges(t *testing.T) {
 		}
 	})
 
-	t.Run("when one SKILL.md has malformed frontmatter, the other skills are still found", func(t *testing.T) {
+	t.Run("1 つの SKILL.md のフロントマターが不正なとき、ほかのスキルは見つかる", func(t *testing.T) {
 		t.Parallel()
 		// Arrange
 		root := writeRepo(t, map[string]string{"skills/good/SKILL.md": fm("good"), "extras/bad/SKILL.md": "---\nname: [\n---\n"})
@@ -194,7 +194,7 @@ func TestDiscoverSkillsEdges(t *testing.T) {
 		}
 	})
 
-	t.Run("when a SKILL.md names a path instead of a skill, it is skipped", func(t *testing.T) {
+	t.Run("SKILL.md の name がスキル名でなくパスのとき、スキップされる", func(t *testing.T) {
 		t.Parallel()
 		// Arrange
 		root := writeRepo(t, map[string]string{
@@ -217,7 +217,7 @@ func TestDiscoverSkillsEdges(t *testing.T) {
 		}
 	})
 
-	t.Run("when a SKILL.md is a symlink, its directory is not a skill", func(t *testing.T) {
+	t.Run("SKILL.md がシンボリックリンクのとき、そのディレクトリはスキルにならない", func(t *testing.T) {
 		t.Parallel()
 		// Arrange
 		root := writeRepo(t, map[string]string{"skills/good/SKILL.md": fm("good"), "elsewhere.md": fm("link")})
@@ -241,7 +241,7 @@ func TestDiscoverSkillsEdges(t *testing.T) {
 		}
 	})
 
-	t.Run("when a skill only vercel-labs/skills finds is marked internal, it is found but not a default", func(t *testing.T) {
+	t.Run("vercel-labs/skills だけが見つけるスキルが internal と記されているとき、見つかるが既定にはならない", func(t *testing.T) {
 		// Arrange
 		t.Setenv("INSTALL_INTERNAL_SKILLS", "")
 		root := writeRepo(t, map[string]string{".claude/skills/secret/SKILL.md": "---\nname: secret\ndescription: d\nmetadata:\n  internal: true\n---\n"})
@@ -258,7 +258,7 @@ func TestDiscoverSkillsEdges(t *testing.T) {
 		}
 	})
 
-	t.Run("when INSTALL_INTERNAL_SKILLS opts in, an internal skill is a default", func(t *testing.T) {
+	t.Run("INSTALL_INTERNAL_SKILLS で有効にしたとき、internal のスキルが既定になる", func(t *testing.T) {
 		// Arrange
 		t.Setenv("INSTALL_INTERNAL_SKILLS", "1")
 		root := writeRepo(t, map[string]string{".claude/skills/secret/SKILL.md": "---\nname: secret\ndescription: d\nmetadata:\n  internal: true\n---\n"})

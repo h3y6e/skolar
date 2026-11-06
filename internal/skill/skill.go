@@ -1,4 +1,4 @@
-// Package skill discovers, installs, checks and verifies agent skills.
+// Package skill はエージェントスキルの探索、インストール、更新確認、検証を行う
 package skill
 
 import (
@@ -13,9 +13,8 @@ import (
 	"golang.org/x/text/language"
 )
 
-// ComputeHash returns the computedHash vercel-labs/skills records for the
-// skill in fsys: SHA-256 over the paths and contents of regular files in
-// locale order, skipping .git and node_modules.
+// ComputeHash は fsys のスキルについて vercel-labs/skills が記録する computedHash を返す。
+// 通常ファイルのパスと内容を locale 順に並べた SHA-256 で、.git と node_modules は除く
 func ComputeHash(fsys fs.FS) (string, error) {
 	var files []string
 
@@ -35,7 +34,7 @@ func ComputeHash(fsys fs.FS) (string, error) {
 		return nil
 	})
 	if err != nil {
-		return "", fmt.Errorf("compute hash: %w", err)
+		return "", fmt.Errorf("ハッシュの計算: %w", err)
 	}
 
 	slices.SortFunc(files, collate.New(language.Und).CompareString)
@@ -45,7 +44,7 @@ func ComputeHash(fsys fs.FS) (string, error) {
 	for _, p := range files {
 		data, err := fs.ReadFile(fsys, p)
 		if err != nil {
-			return "", fmt.Errorf("compute hash: %w", err)
+			return "", fmt.Errorf("ハッシュの計算: %w", err)
 		}
 
 		_, _ = io.WriteString(h, p)

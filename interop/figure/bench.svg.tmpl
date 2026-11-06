@@ -1,8 +1,8 @@
 {{- $card := add .RulerY 78 -}}
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 {{$card}}" width="900" height="{{$card}}" role="img" aria-labelledby="t d">
-  <title id="t">Time to update installed skills</title>
-  <desc id="d">{{.Readout}}. Median wall time of {{.Runs}} runs on {{.Env}} with {{.Versions}}; a first run starts from an empty cache, a repeat run from the cache the first one filled.{{range .Groups}}{{$g := .Title}}{{range .Bars}}
-{{$g}}, {{.Tool}}: {{secs .Warm}} repeat run, {{secs .Cold}} first run{{end}}{{end}}
+  <title id="t">インストール済みスキルの更新時間</title>
+  <desc id="d">{{.Readout}}。{{.Env}} 上で {{.Versions}} を使い、{{.Runs}} 回実行した実時間の中央値。初回は空のキャッシュから、2 回目以降は初回が埋めたキャッシュから始める。{{range .Groups}}{{$g := .Title}}{{range .Bars}}
+{{$g}}、{{.Tool}}: 2 回目以降 {{secs .Warm}}、初回 {{secs .Cold}}{{end}}{{end}}
 </desc>
   <style>
     {{template "style"}}
@@ -17,8 +17,8 @@
   </style>
   <rect class="card" x=".5" y=".5" width="899" height="{{sub $card 1}}"/>
   <text class="corner" x="34" y="44">{{.Versions}}</text>
-  <text class="corner" x="806" y="44" text-anchor="end">REPEAT</text>
-  <text class="corner" x="866" y="44" text-anchor="end">FIRST</text>
+  <text class="corner" x="806" y="44" text-anchor="end">2 回目以降</text>
+  <text class="corner" x="866" y="44" text-anchor="end">初回</text>
 {{- range .Shown}}
   <text class="h" x="34" y="{{.Y}}">{{.Title}}</text>
 {{- range .Bars}}
@@ -34,9 +34,9 @@
   <path class="rule" d="M {{.X}} {{$.RulerY}} V {{add $.RulerY (tickLen .Label)}}"/>{{if .Label}}<text class="mono muted" x="{{.X}}" y="{{add $.RulerY 22}}" text-anchor="middle">{{.Label}}</text>{{end}}
 {{- end}}
   <g transform="translate(34 {{sub $card 24}})">
-    <rect class="skolar" width="12" height="12" rx="3" y="-10"/><text class="corner" x="18">SKOLAR</text>
-    <rect class="other" width="12" height="12" rx="3" y="-10" x="96"/><text class="corner" x="114">OTHER TOOL</text>
-    <rect class="band" width="12" height="12" rx="3" y="-10" x="214"/><text class="corner" x="232">FIRST RUN</text>
+    <rect class="skolar" width="12" height="12" rx="3" y="-10"/><text class="corner" x="18">skolar</text>
+    <rect class="other" width="12" height="12" rx="3" y="-10" x="96"/><text class="corner" x="114">他のツール</text>
+    <rect class="band" width="12" height="12" rx="3" y="-10" x="196"/><text class="corner" x="214">初回</text>
   </g>
   <text class="corner" x="866" y="{{sub $card 24}}" text-anchor="end">{{.Platform}}</text>
 </svg>

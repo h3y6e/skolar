@@ -19,7 +19,7 @@ const (
 	fail
 )
 
-func (s status) String() string { return [...]string{"not covered", "pass", "gap", "fail"}[s] }
+func (s status) String() string { return [...]string{"対象外", "合格", "制約", "失敗"}[s] }
 
 type suite struct {
 	tool int
@@ -116,7 +116,7 @@ func (c *compat) record(e event) error {
 
 	s, ok := suites[top]
 	if !ok {
-		return fmt.Errorf("%s: no tool for this test", top)
+		return fmt.Errorf("%s: このテストに対応するツールがありません", top)
 	}
 
 	if s.tool == skolarOnly {
@@ -125,7 +125,7 @@ func (c *compat) record(e event) error {
 
 	label, sentence, ok := strings.Cut(strings.ReplaceAll(sub, "_", " "), ": ")
 	if !ok {
-		return fmt.Errorf("%s: subtest name has no \"label: \" prefix", e.Test)
+		return fmt.Errorf("%s: サブテスト名に「ラベル: 」の接頭辞がありません", e.Test)
 	}
 
 	i, ok := c.index[label]
@@ -173,34 +173,22 @@ func (c *compat) layout() {
 		}
 	}
 
-	c.Readout = plural(counts[pass], "check") + " pass"
+	c.Readout = strconv.Itoa(counts[pass]) + " 件合格"
 
 	for ti, n := range gaps {
 		if n > 0 {
-			c.Readout += " · " + plural(n, "gap") + " in " + c.Tools[ti].Name
+			c.Readout += " · " + c.Tools[ti].Name + " に " + strconv.Itoa(n) + " 件の制約"
 		}
 	}
 
 	if counts[fail] > 0 {
-		c.Readout += " · " + plural(counts[fail], "check") + " fail"
+		c.Readout += " · " + strconv.Itoa(counts[fail]) + " 件失敗"
 	}
-}
-
-func plural(n int, noun string) string {
-	if n == 1 {
-		return "1 " + noun
-	}
-
-	return strconv.Itoa(n) + " " + noun + "s"
 }
 
 var compatFuncs = template.FuncMap{
 	"css": func(s status) string {
-		if s == uncovered {
-			return "none"
-		}
-
-		return s.String()
+		return [...]string{"none", "pass", "gap", "fail"}[s]
 	},
 	"glyph": func(s status) string { return [...]string{"–", "✓", "!", "✕"}[s] },
 }

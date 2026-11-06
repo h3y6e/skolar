@@ -14,10 +14,10 @@ import (
 	"github.com/h3y6e/skolar/internal/lock"
 )
 
-// VerifyStatus is the outcome of verifying an installed skill.
+// VerifyStatus はインストール済みスキルの検証結果を表す
 type VerifyStatus string
 
-// Statuses verify reports.
+// verify が報告する状態
 const (
 	VerifyVerified     VerifyStatus = "verified"
 	VerifyModified     VerifyStatus = "modified"
@@ -25,22 +25,22 @@ const (
 	VerifyLocal        VerifyStatus = "local"
 )
 
-// VerifyResult compares an installed skill with its record. Files lists the
-// differing paths when the record allows a per-file comparison.
+// VerifyResult はインストール済みスキルを記録と比較した結果である。Files は記録から
+// ファイル単位の比較ができる場合に差異のあるパスを列挙する
 type VerifyResult struct {
 	SkillName string       `json:"skillName"`
 	Status    VerifyStatus `json:"status"`
 	Source    string       `json:"source"`
 	Files     []string     `json:"files,omitempty"`
 	Reason    string       `json:"reason,omitempty"`
-	// Reinstall is the add argument that restores the skill as recorded.
+	// Reinstall は記録どおりにスキルを復元する add の引数である
 	Reinstall string `json:"-"`
 }
 
-// VerifyLocked recomputes each lockfile skill's computedHash from disk,
-// offline. When the hash differs, it clones the source: if the upstream skill
-// still has the recorded hash, the install is compared file by file with it,
-// minus what vercel-labs/skills leaves out when it installs a skill.
+// VerifyLocked はロックファイルの各スキルの computedHash をディスクから再計算する。
+// オフラインで動く。ハッシュが異なる場合はソースを clone し、上流のスキルが記録と同じハッシュを
+// 保っていれば、vercel-labs/skills がスキルのインストール時に除くものを除いたうえで、
+// インストール結果と上流をファイル単位で比較する
 func VerifyLocked(layout lock.Layout, entries map[string]lock.Entry, cloneFn CloneFunc) []VerifyResult {
 	var sources onceMap[string, []DiscoveredSkill]
 
@@ -81,7 +81,7 @@ func verifyLockedOnline(name string, entry lock.Entry, installed string, upstrea
 	}
 
 	if hash != entry.ComputedHash {
-		return VerifyUnverifiable, nil, "upstream changed since install"
+		return VerifyUnverifiable, nil, "インストール後に上流が変更されました"
 	}
 
 	files, err := diffDirs(up.FS, os.DirFS(installed), vercelStyle)
@@ -96,8 +96,8 @@ func verifyLockedOnline(name string, entry lock.Entry, installed string, upstrea
 	return VerifyVerified, nil, ""
 }
 
-// VerifyTracked compares each gh-format skill with the upstream tree its
-// metadata records, fetched at github-ref unless cached.
+// VerifyTracked は gh 形式の各スキルをそのメタデータが記録する上流のツリーと比較する。
+// ツリーはキャッシュにない限り github-ref で取得する
 func VerifyTracked(installed []InstalledSkill, fns UpstreamFuncs) []VerifyResult {
 	return parallelMap(installed, func(s InstalledSkill) VerifyResult {
 		source, _ := OwnerRepoFromURL(s.Meta.RepoURL)
@@ -107,7 +107,7 @@ func VerifyTracked(installed []InstalledSkill, fns UpstreamFuncs) []VerifyResult
 		case s.Meta.IsLocal():
 			result.Status, result.Reason = VerifyLocal, s.Meta.LocalPath
 		case s.Meta.Path == "":
-			result.Status, result.Reason = VerifyUnverifiable, "missing github-path in skill metadata"
+			result.Status, result.Reason = VerifyUnverifiable, "スキルのメタデータに github-path がありません"
 		default:
 			result.Status, result.Files, result.Reason = verifyTracked(s, fns)
 		}
@@ -139,8 +139,8 @@ func verifyTracked(s InstalledSkill, fns UpstreamFuncs) (VerifyStatus, []string,
 	return VerifyVerified, nil, ""
 }
 
-// VerifyUnrecorded reports every skill directory in skillsDir that neither the
-// lockfile nor readable gh skill metadata records.
+// VerifyUnrecorded は skillsDir のスキルのディレクトリのうちロックファイルにも
+// 読み取れる gh skill のメタデータにも記録されていないものをすべて報告する
 func VerifyUnrecorded(skillsDir string, recorded func(name string) bool) ([]VerifyResult, error) {
 	entries, err := os.ReadDir(skillsDir)
 	if errors.Is(err, os.ErrNotExist) {
@@ -148,7 +148,7 @@ func VerifyUnrecorded(skillsDir string, recorded func(name string) bool) ([]Veri
 	}
 
 	if err != nil {
-		return nil, fmt.Errorf("read skills directory %q: %w", skillsDir, err)
+		return nil, fmt.Errorf("スキルのディレクトリ %q の読み取り: %w", skillsDir, err)
 	}
 
 	var results []VerifyResult
@@ -158,7 +158,7 @@ func VerifyUnrecorded(skillsDir string, recorded func(name string) bool) ([]Veri
 			continue
 		}
 
-		reason := "no lockfile entry or gh skill metadata"
+		reason := "ロックファイルのエントリも gh skill のメタデータもありません"
 		if data, err := os.ReadFile(filepath.Join(skillsDir, e.Name(), "SKILL.md")); err != nil {
 			reason = err.Error()
 		} else if _, err := ParseSourceMetadata(string(data)); err != nil {
@@ -171,8 +171,6 @@ func VerifyUnrecorded(skillsDir string, recorded func(name string) bool) ([]Veri
 	return results, nil
 }
 
-// diffDirs returns the sorted paths of files that differ, or exist in only
-// one of want, read as an install in style s holds it, and got, as installed.
 func diffDirs(want, got fs.FS, s style) ([]string, error) {
 	wantFiles, gotFiles, err := readBoth(want, got, s)
 	if err != nil {

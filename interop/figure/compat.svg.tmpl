@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 {{.Card}}" width="900" height="{{.Card}}" role="img" aria-labelledby="t d">
-  <title id="t">skolar alongside vercel-labs/skills and gh skill</title>
-  <desc id="d">{{.Readout}}, with {{.Versions}}.{{range .Rows}}{{$label := .Label}}{{range $i, $c := .Cells}}{{range $c.Cases}}
-{{(index $.Tools $i).Name}}, {{$label}} ({{.Status}}): {{html .Sentence}}{{end}}{{end}}{{end}}
+  <title id="t">skolar と vercel-labs/skills・gh skill の互換性</title>
+  <desc id="d">{{.Readout}} ({{.Versions}})。{{range .Rows}}{{$label := .Label}}{{range $i, $c := .Cells}}{{range $c.Cases}}
+{{(index $.Tools $i).Name}}、{{$label}} ({{.Status}}): {{html .Sentence}}{{end}}{{end}}{{end}}
 </desc>
   <style>
     {{template "style"}}
@@ -28,13 +28,13 @@
   <line class="rule" x1="34" x2="866" y1="{{sub $y 16}}" y2="{{sub $y 16}}"/>
   <text x="34" y="{{add $y 4}}">{{$label}}</text>
   {{- range $i, $c := .Cells}}{{$x := (index $.Tools $i).X}}
-  <g><title>{{(index $.Tools $i).Name}}, {{$label}}: {{$c.Status}}</title><rect class="{{css $c.Status}}" x="{{sub $x 8}}" y="{{sub $y 8}}" width="16" height="16" rx="4"/><text class="glyph" x="{{$x}}" y="{{add $y 4}}" text-anchor="middle">{{glyph $c.Status}}</text></g>
+  <g><title>{{(index $.Tools $i).Name}}、{{$label}}: {{$c.Status}}</title><rect class="{{css $c.Status}}" x="{{sub $x 8}}" y="{{sub $y 8}}" width="16" height="16" rx="4"/><text class="glyph" x="{{$x}}" y="{{add $y 4}}" text-anchor="middle">{{glyph $c.Status}}</text></g>
   {{- end}}
 {{- end}}
   <g transform="translate(34 {{sub .Card 24}})">
-    <rect class="pass" width="12" height="12" rx="3" y="-10"/><text class="corner" x="18">PASS</text>
-    <rect class="gap" width="12" height="12" rx="3" y="-10" x="80"/><text class="corner" x="98">GAP IN THE TOOL</text>
-    <rect class="fail" width="12" height="12" rx="3" y="-10" x="232"/><text class="corner" x="250">FAIL</text>
-    <rect class="none" width="12" height="12" rx="3" y="-10" x="312"/><text class="corner" x="330">NOT COVERED</text>
+    <rect class="pass" width="12" height="12" rx="3" y="-10"/><text class="corner" x="18">合格</text>
+    <rect class="gap" width="12" height="12" rx="3" y="-10" x="60"/><text class="corner" x="78">ツール側の制約</text>
+    <rect class="fail" width="12" height="12" rx="3" y="-10" x="180"/><text class="corner" x="198">失敗</text>
+    <rect class="none" width="12" height="12" rx="3" y="-10" x="242"/><text class="corner" x="260">対象外</text>
   </g>
 </svg>

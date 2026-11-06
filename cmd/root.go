@@ -1,4 +1,4 @@
-// Package cmd implements the skolar command line.
+// Package cmd は skolar のコマンドラインを実装する
 package cmd
 
 import (
@@ -21,21 +21,17 @@ import (
 	"github.com/spf13/pflag"
 )
 
-// NewUpstreamFuncs is replaceable for testing (same pattern as IsTTY).
+// NewUpstreamFuncs はテストで差し替えられる (IsTTY と同じ方式)
 var NewUpstreamFuncs = skill.NewUpstreamFuncs
 
-// NewRootCmd builds the skolar command tree.
+// NewRootCmd は skolar のコマンドツリーを組み立てる
 func NewRootCmd(version string) *cobra.Command {
 	root := &cobra.Command{
 		Use:   "skolar",
-		Short: "Manage local agent skills",
-		Long: `Manage local agent skills.
+		Short: "プロジェクトで使うエージェントスキルを管理する",
+		Long: `プロジェクトで使うエージェントスキルを管理する
 
-Every flag except --help and --version can also be set with a SKOLAR_<FLAG> environment variable, e.g. SKOLAR_DIR.
-
-Fetched repositories are cached in $XDG_CACHE_HOME/skolar, or else the user cache directory: ~/Library/Caches/skolar on macOS, %LocalAppData%\skolar on Windows, ~/.cache/skolar elsewhere.
-
-Exit status: 0 on success, 1 on failure (including a skill that could not be checked), 2 on usage errors or a missing --yes.`,
+--help と --version を除くフラグは環境変数でも設定できる (例: --dir は SKOLAR_DIR)`,
 		Version:       resolveVersion(version),
 		SilenceUsage:  true,
 		SilenceErrors: true,
@@ -45,9 +41,9 @@ Exit status: 0 on success, 1 on failure (including a skill that could not be che
 				return c.Help()
 			}
 
-			msg := fmt.Sprintf("unknown command %q for %q", args[0], c.CommandPath())
+			msg := fmt.Sprintf("%[2]q に %[1]q というコマンドはありません", args[0], c.CommandPath())
 			if s := c.SuggestionsFor(args[0]); len(s) > 0 {
-				msg += "\n\nDid you mean this?\n\t" + strings.Join(s, "\n\t")
+				msg += "\n\nもしかして:\n\t" + strings.Join(s, "\n\t")
 			}
 
 			return usageError(c, errors.New(msg))
@@ -64,7 +60,7 @@ Exit status: 0 on success, 1 on failure (including a skill that could not be che
 	return root
 }
 
-// Execute runs the CLI and returns the process exit status.
+// Execute は CLI を実行し、プロセスの終了ステータスを返す
 func Execute(version string) int {
 	root := NewRootCmd(version)
 	if slices.Contains(os.Args[1:], "--usage-spec") {
@@ -76,7 +72,7 @@ func Execute(version string) int {
 	sigs := make(chan os.Signal, 1)
 
 	for _, s := range []os.Signal{os.Interrupt, syscall.SIGTERM} {
-		// An inherited ignore (e.g. a background job) must stay, or reraise would block.
+		// 継承された無視設定 (バックグラウンドジョブなど) は維持する。外すと reraise が戻らなくなる
 		if !signal.Ignored(s) {
 			signal.Notify(sigs, s)
 		}
@@ -98,7 +94,6 @@ func Execute(version string) int {
 	}
 
 	rec := newErrorRecord(err)
-	// Handlers write their own record; usage errors stop before any handler runs.
 	if key := c.Annotations[recordKey]; key != "" && rec.Code == codeUsage {
 		if asJSON, _ := c.Flags().GetBool("json"); asJSON {
 			_ = writeRecord(c.OutOrStdout(), key, []any{}, err)
@@ -118,12 +113,11 @@ func Execute(version string) int {
 	return 1
 }
 
-// recordKey annotates a command with the key of its --json result collection.
 const recordKey = "skolar/record"
 
 type signalError struct{ os.Signal }
 
-func (e signalError) Error() string { return "received " + e.String() }
+func (e signalError) Error() string { return e.String() + " を受信しました" }
 
 func reraise(sig os.Signal) {
 	signal.Reset()
@@ -138,8 +132,6 @@ func reraise(sig os.Signal) {
 	}
 }
 
-// applyEnv makes each SKOLAR_<FLAG> the default of its flag, before parsing lets the command line override it.
-// Cobra adds --help and --version during execution, so they have no variable.
 func applyEnv(root *cobra.Command) error {
 	commands := []*cobra.Command{root}
 	for len(commands) > 0 {
@@ -180,12 +172,12 @@ func applyEnv(root *cobra.Command) error {
 
 func printSkippedEntries(w io.Writer, skipped []skill.SkippedEntry) {
 	for _, s := range skipped {
-		fmt.Fprintf(w, "warning: skipping %q (unsupported source type %q)\n", s.SkillName, s.SourceType)
+		fmt.Fprintf(w, "warning: %q をスキップします (未対応のソース種別 %q)\n", s.SkillName, s.SourceType)
 	}
 }
 
 func bindSkillFlag(c *cobra.Command, target *[]string, usage string) {
-	c.Flags().StringSliceVarP(target, "skill", "s", nil, usage+"; globs like 'gke-*' match names (repeatable)")
+	c.Flags().StringSliceVarP(target, "skill", "s", nil, usage+"。'spec-*' のような glob でも指定できる (複数指定可)")
 	c.PreRunE = func(c *cobra.Command, _ []string) error {
 		if err := skill.CheckPatterns(*target); err != nil {
 			return usageError(c, err)
@@ -196,7 +188,7 @@ func bindSkillFlag(c *cobra.Command, target *[]string, usage string) {
 }
 
 func bindDirFlag(c *cobra.Command, target *string) {
-	c.Flags().StringVarP(target, "dir", "d", lock.DefaultDir, "Skill directory; .agents/skills beside a skills-lock.json uses the lockfile, others SKILL.md metadata")
+	c.Flags().StringVarP(target, "dir", "d", lock.DefaultDir, "スキルのディレクトリ")
 }
 
 type inventory struct {

@@ -7,8 +7,6 @@ import (
 	"time"
 )
 
-// withMetadata returns skill with gh source metadata merged into its
-// SKILL.md, so that the installed result stays updatable by gh skill.
 func withMetadata(skill fs.FS, meta SourceMetadata) (fs.FS, error) {
 	data, err := fs.ReadFile(skill, "SKILL.md")
 	if err != nil {
@@ -23,7 +21,6 @@ func withMetadata(skill fs.FS, meta SourceMetadata) (fs.FS, error) {
 	return overlayFS{FS: skill, skillMD: []byte(injected)}, nil
 }
 
-// overlayFS replaces the content of the SKILL.md at the root of FS.
 type overlayFS struct {
 	fs.FS
 	skillMD []byte

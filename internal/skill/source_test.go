@@ -21,7 +21,7 @@ func TestParseSource(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "github shorthand",
+			name: "GitHub の省略記法",
 			raw:  "h3y6e/spec-skills",
 			want: skill.SourceRef{
 				Raw:             "h3y6e/spec-skills",
@@ -31,7 +31,7 @@ func TestParseSource(t *testing.T) {
 			},
 		},
 		{
-			name: "github shorthand with ref",
+			name: "ref 付きの GitHub の省略記法",
 			raw:  "h3y6e/spec-skills#feature/install",
 			want: skill.SourceRef{
 				Raw:             "h3y6e/spec-skills#feature/install",
@@ -42,7 +42,7 @@ func TestParseSource(t *testing.T) {
 			},
 		},
 		{
-			name: "github https url",
+			name: "GitHub の https URL",
 			raw:  "https://github.com/h3y6e/spec-skills",
 			want: skill.SourceRef{
 				Raw:             "https://github.com/h3y6e/spec-skills",
@@ -52,7 +52,7 @@ func TestParseSource(t *testing.T) {
 			},
 		},
 		{
-			name: "github https url with ref",
+			name: "ref 付きの GitHub の https URL",
 			raw:  "https://github.com/h3y6e/spec-skills.git#release-2026",
 			want: skill.SourceRef{
 				Raw:             "https://github.com/h3y6e/spec-skills.git#release-2026",
@@ -63,7 +63,7 @@ func TestParseSource(t *testing.T) {
 			},
 		},
 		{
-			name: "gitlab https url",
+			name: "GitLab の https URL",
 			raw:  "https://gitlab.com/h3y6e/repo",
 			want: skill.SourceRef{
 				Raw:             "https://gitlab.com/h3y6e/repo",
@@ -73,7 +73,7 @@ func TestParseSource(t *testing.T) {
 			},
 		},
 		{
-			name: "gitlab https url with ref",
+			name: "ref 付きの GitLab の https URL",
 			raw:  "https://gitlab.com/h3y6e/repo#feature/install",
 			want: skill.SourceRef{
 				Raw:             "https://gitlab.com/h3y6e/repo#feature/install",
@@ -84,7 +84,7 @@ func TestParseSource(t *testing.T) {
 			},
 		},
 		{
-			name: "github ssh url",
+			name: "GitHub の ssh URL",
 			raw:  "git@github.com:h3y6e/spec-skills.git",
 			want: skill.SourceRef{
 				Raw:             "git@github.com:h3y6e/spec-skills.git",
@@ -94,7 +94,7 @@ func TestParseSource(t *testing.T) {
 			},
 		},
 		{
-			name: "github ssh url with ref",
+			name: "ref 付きの GitHub の ssh URL",
 			raw:  "git@github.com:h3y6e/spec-skills.git#feature/install",
 			want: skill.SourceRef{
 				Raw:             "git@github.com:h3y6e/spec-skills.git#feature/install",
@@ -105,7 +105,7 @@ func TestParseSource(t *testing.T) {
 			},
 		},
 		{
-			name: "generic git url",
+			name: "一般的な git の URL",
 			raw:  "ssh://git@example.com/team/skills.git",
 			want: skill.SourceRef{
 				Raw:             "ssh://git@example.com/team/skills.git",
@@ -115,7 +115,7 @@ func TestParseSource(t *testing.T) {
 			},
 		},
 		{
-			name: "generic git url with ref",
+			name: "ref 付きの一般的な git の URL",
 			raw:  "ssh://git@example.com/team/skills.git#release-2026",
 			want: skill.SourceRef{
 				Raw:             "ssh://git@example.com/team/skills.git#release-2026",
@@ -126,7 +126,7 @@ func TestParseSource(t *testing.T) {
 			},
 		},
 		{
-			name: "self-hosted https url",
+			name: "セルフホストの https URL",
 			raw:  "https://gitea.example.com/org/repo",
 			want: skill.SourceRef{
 				Raw:             "https://gitea.example.com/org/repo",
@@ -136,17 +136,17 @@ func TestParseSource(t *testing.T) {
 			},
 		},
 		{
-			name:    "invalid source",
+			name:    "不正なソース",
 			raw:     "not a source",
 			wantErr: true,
 		},
 		{
-			name:    "github blob url is unsupported",
+			name:    "GitHub の blob URL は未対応",
 			raw:     "https://github.com/h3y6e/spec-skills/blob/main/README.md#L10",
 			wantErr: true,
 		},
 		{
-			name: "file url for local testing",
+			name: "ローカルテスト用の file URL",
 			raw:  "file:///tmp/bare-repo",
 			want: skill.SourceRef{
 				Raw:             "file:///tmp/bare-repo",
@@ -156,7 +156,7 @@ func TestParseSource(t *testing.T) {
 			},
 		},
 		{
-			name: "file url with ref",
+			name: "ref 付きの file URL",
 			raw:  "file:///tmp/bare-repo#topic",
 			want: skill.SourceRef{
 				Raw:             "file:///tmp/bare-repo#topic",
@@ -167,7 +167,7 @@ func TestParseSource(t *testing.T) {
 			},
 		},
 		{
-			name: "absolute local path",
+			name: "ローカルの絶対パス",
 			raw:  "/tmp/spec-skills",
 			want: skill.SourceRef{
 				Raw:             "/tmp/spec-skills",
@@ -177,7 +177,7 @@ func TestParseSource(t *testing.T) {
 			},
 		},
 		{
-			name: "relative local path, cloned from the working directory",
+			name: "ローカルの相対パス (作業ディレクトリから clone する)",
 			raw:  "../spec-skills#feature/install",
 			want: skill.SourceRef{
 				Raw:             "../spec-skills#feature/install",
@@ -219,8 +219,8 @@ func TestSourceInput(t *testing.T) {
 		entry lock.Entry
 		want  string
 	}{
-		{"when the entry is a GitLab source, the input names gitlab.com", lock.Entry{Source: "team/repo", SourceType: "gitlab", Ref: "v1"}, "https://gitlab.com/team/repo#v1"},
-		{"when the entry is a GitHub source, the input is its shorthand", lock.Entry{Source: "o/r", SourceType: "github"}, "o/r"},
+		{"エントリが GitLab のソースのとき、入力は gitlab.com を指す", lock.Entry{Source: "team/repo", SourceType: "gitlab", Ref: "v1"}, "https://gitlab.com/team/repo#v1"},
+		{"エントリが GitHub のソースのとき、入力はその省略記法になる", lock.Entry{Source: "o/r", SourceType: "github"}, "o/r"},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
