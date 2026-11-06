@@ -15,10 +15,10 @@ import (
 	"time"
 )
 
-// Tree is a read-only fs.FS over a git tree in the cache, reading tree
-// objects as it walks them. It never follows symbolic links: opening one
-// fails, and Stat and ReadDir report them as links. Submodules appear as
-// irregular files. Only an opened file reports its size.
+// Tree はキャッシュ内の git ツリーを読む読み取り専用の fs.FS で、ツリーオブジェクトは
+// たどる時点で読む。シンボリックリンクはたどらない。開こうとすると
+// 失敗し、Stat と ReadDir はリンクとして報告する。サブモジュールは
+// 通常でないファイルとして現れる。サイズを報告するのは開いたファイルだけである
 type Tree struct {
 	repo *repo
 	root string
@@ -37,7 +37,7 @@ func (r *repo) tree(oid string) *Tree {
 	return &Tree{repo: r, root: oid, dirs: map[string][]treeEntry{}}
 }
 
-// Open opens the regular file or directory name.
+// Open は通常ファイルまたはディレクトリ name を開く
 func (t *Tree) Open(name string) (fs.File, error) {
 	e, err := t.lookup("open", name)
 	if err != nil {
@@ -64,10 +64,10 @@ func (t *Tree) Open(name string) (fs.File, error) {
 		return &treeFile{info: info, Reader: bytes.NewReader(data)}, nil
 	}
 
-	return nil, &fs.PathError{Op: "open", Path: name, Err: errors.New("not a regular file or directory")}
+	return nil, &fs.PathError{Op: "open", Path: name, Err: errors.New("通常ファイルでもディレクトリでもありません")}
 }
 
-// ReadFile reads the regular file name.
+// ReadFile は通常ファイル name を読む
 func (t *Tree) ReadFile(name string) ([]byte, error) {
 	e, err := t.lookup("read", name)
 	if err != nil {
@@ -75,13 +75,13 @@ func (t *Tree) ReadFile(name string) ([]byte, error) {
 	}
 
 	if !e.mode.IsRegular() {
-		return nil, &fs.PathError{Op: "read", Path: name, Err: errors.New("not a regular file")}
+		return nil, &fs.PathError{Op: "read", Path: name, Err: errors.New("通常ファイルではありません")}
 	}
 
 	return t.repo.contents(e.oid)
 }
 
-// ReadDir lists the directory name, sorted by name.
+// ReadDir はディレクトリ name の内容を名前順に返す
 func (t *Tree) ReadDir(name string) ([]fs.DirEntry, error) {
 	e, err := t.lookup("readdir", name)
 	if err != nil {
@@ -89,7 +89,7 @@ func (t *Tree) ReadDir(name string) ([]fs.DirEntry, error) {
 	}
 
 	if !e.mode.IsDir() {
-		return nil, &fs.PathError{Op: "readdir", Path: name, Err: errors.New("not a directory")}
+		return nil, &fs.PathError{Op: "readdir", Path: name, Err: errors.New("ディレクトリではありません")}
 	}
 
 	children, err := t.list(name, e.oid)
@@ -105,7 +105,7 @@ func (t *Tree) ReadDir(name string) ([]fs.DirEntry, error) {
 	return entries, nil
 }
 
-// Stat describes name without following a symbolic link.
+// Stat はシンボリックリンクをたどらずに name の情報を返す
 func (t *Tree) Stat(name string) (fs.FileInfo, error) {
 	e, err := t.lookup("stat", name)
 	if err != nil {
@@ -115,7 +115,7 @@ func (t *Tree) Stat(name string) (fs.FileInfo, error) {
 	return t.info(e), nil
 }
 
-// ReadLink returns the target of the symbolic link name.
+// ReadLink はシンボリックリンク name の参照先を返す
 func (t *Tree) ReadLink(name string) (string, error) {
 	e, err := t.lookup("readlink", name)
 	if err != nil {
@@ -123,7 +123,7 @@ func (t *Tree) ReadLink(name string) (string, error) {
 	}
 
 	if e.mode&fs.ModeSymlink == 0 {
-		return "", &fs.PathError{Op: "readlink", Path: name, Err: errors.New("not a symbolic link")}
+		return "", &fs.PathError{Op: "readlink", Path: name, Err: errors.New("シンボリックリンクではありません")}
 	}
 
 	target, err := t.repo.contents(e.oid)
@@ -131,7 +131,7 @@ func (t *Tree) ReadLink(name string) (string, error) {
 	return string(target), err
 }
 
-// Lstat describes name; Stat never follows a link either.
+// Lstat は name の情報を返す。Stat もリンクをたどらない
 func (t *Tree) Lstat(name string) (fs.FileInfo, error) {
 	return t.Stat(name)
 }
@@ -143,7 +143,7 @@ func (t *Tree) treeSHA(dir string) (string, error) {
 	}
 
 	if !e.mode.IsDir() {
-		return "", fmt.Errorf("%s: not a directory", dir)
+		return "", fmt.Errorf("%s: ディレクトリではありません", dir)
 	}
 
 	return e.oid, nil
@@ -182,7 +182,6 @@ func (t *Tree) lookup(op, name string) (treeEntry, error) {
 	return e, nil
 }
 
-// list returns the entries of the tree oid at dir, sorted by name.
 func (t *Tree) list(dir, oid string) ([]treeEntry, error) {
 	t.mu.Lock()
 	children, ok := t.dirs[dir]
@@ -209,8 +208,6 @@ func (t *Tree) list(dir, oid string) ([]treeEntry, error) {
 	return children, nil
 }
 
-// parseTree reads the entries of a raw tree object, each a mode, a space, a
-// name, a NUL and a binary object ID of hashSize bytes.
 func parseTree(data []byte, hashSize int) ([]treeEntry, error) {
 	var entries []treeEntry
 
@@ -219,7 +216,7 @@ func parseTree(data []byte, hashSize int) ([]treeEntry, error) {
 		nul := bytes.IndexByte(data, 0)
 
 		if sp < 0 || nul < sp || len(data) < nul+1+hashSize {
-			return nil, errors.New("malformed tree object")
+			return nil, errors.New("ツリーオブジェクトの形式が不正です")
 		}
 
 		entries = append(entries, treeEntry{
@@ -284,7 +281,7 @@ type treeDir struct {
 
 func (d *treeDir) Stat() (fs.FileInfo, error) { return d.info, nil }
 func (d *treeDir) Read([]byte) (int, error) {
-	return 0, &fs.PathError{Op: "read", Path: d.info.name, Err: errors.New("is a directory")}
+	return 0, &fs.PathError{Op: "read", Path: d.info.name, Err: errors.New("ディレクトリです")}
 }
 func (d *treeDir) Close() error { return nil }
 

@@ -8,17 +8,16 @@ import (
 	"slices"
 )
 
-// Stat counts the lines added and deleted, and the files changed, by
-// applying an update. Mode changes do not count.
+// Stat は更新の適用で追加・削除された行数と変更されたファイル数を数える。
+// モードの変更は数えない
 type Stat struct {
 	Added   int
 	Deleted int
 	Files   int
 }
 
-// DiffStat counts what applying c changes in the installed skill at dir.
-// Lines are counted as git diff --minimal --numstat does; binary files add
-// none.
+// DiffStat は c の適用が dir のインストール済みスキルに加える変更を数える。
+// 行数は git diff --minimal --numstat と同じ方式で数え、バイナリファイルは 0 行とする
 func DiffStat(c UpdateCandidate, dir string) (Stat, error) {
 	s := vercelStyle
 	if c.Foreign {
@@ -31,8 +30,6 @@ func DiffStat(c UpdateCandidate, dir string) (Stat, error) {
 	}
 
 	if c.Foreign {
-		// The installed SKILL.md records the old source metadata; giving it the
-		// new metadata leaves only content changes.
 		meta, err := ParseSourceMetadata(string(want["SKILL.md"]))
 		if err != nil {
 			return Stat{}, err
@@ -58,7 +55,6 @@ func DiffStat(c UpdateCandidate, dir string) (Stat, error) {
 		stat.Deleted += deleted
 	}
 
-	// Update replaces the whole directory, so installed links go too.
 	links, err := linkPaths(dir)
 	stat.Files = len(changed)
 
@@ -86,8 +82,6 @@ func linkPaths(dir string) ([]string, error) {
 	return links, err
 }
 
-// lineDiff counts the lines a minimal line diff from a to b adds and
-// deletes, or none when either is binary, as git judges by a NUL byte.
 func lineDiff(a, b []byte) (added, deleted int) {
 	if isBinary(a) || isBinary(b) {
 		return 0, 0
@@ -119,8 +113,6 @@ func splitLines(data []byte) []string {
 	return lines
 }
 
-// internLines numbers the lines of a and b, dropping those found on one side
-// only, which no common subsequence can contain.
 func internLines(a, b []string) (x, y []int) {
 	ids := map[string]int{}
 	sides := map[string]int{}
@@ -156,8 +148,6 @@ func internLines(a, b []string) (x, y []int) {
 	return number(a), number(b)
 }
 
-// lcsLength returns the length of a longest common subsequence of x and y,
-// with Myers' O((N+M)D) algorithm.
 func lcsLength(x, y []int) int {
 	n, m := len(x), len(y)
 	offset := n + m + 1

@@ -15,7 +15,7 @@ import (
 func TestInstallSkills(t *testing.T) {
 	t.Parallel()
 
-	t.Run("copies skill files to destination", func(t *testing.T) {
+	t.Run("スキルをインストールしたとき、ファイルがインストール先にコピーされる", func(t *testing.T) {
 		t.Parallel()
 
 		srcDir := t.TempDir()
@@ -61,7 +61,7 @@ func TestInstallSkills(t *testing.T) {
 		}
 	})
 
-	t.Run("creates lockfile with entries", func(t *testing.T) {
+	t.Run("スキルをインストールしたとき、エントリを持つロックファイルが作られる", func(t *testing.T) {
 		t.Parallel()
 
 		srcDir := t.TempDir()
@@ -112,7 +112,7 @@ func TestInstallSkills(t *testing.T) {
 		}
 	})
 
-	t.Run("merges into existing lockfile", func(t *testing.T) {
+	t.Run("ロックファイルがすでにあるとき、既存のものにマージされる", func(t *testing.T) {
 		t.Parallel()
 
 		srcDir := t.TempDir()
@@ -165,7 +165,7 @@ func TestInstallSkills(t *testing.T) {
 		}
 	})
 
-	t.Run("does not corrupt destination on empty input", func(t *testing.T) {
+	t.Run("入力が空のとき、インストール先は壊れない", func(t *testing.T) {
 		t.Parallel()
 
 		skillsDir := t.TempDir()
@@ -180,7 +180,7 @@ func TestInstallSkills(t *testing.T) {
 func TestReplaceSkill(t *testing.T) {
 	t.Parallel()
 
-	t.Run("replaces existing skill directory with staged content", func(t *testing.T) {
+	t.Run("スキルのディレクトリがすでにあるとき、ステージ済みの内容で置き換えられる", func(t *testing.T) {
 		t.Parallel()
 
 		skillsDir := t.TempDir()
@@ -224,7 +224,7 @@ func TestReplaceSkill(t *testing.T) {
 		}
 	})
 
-	t.Run("creates skill directory if it does not exist", func(t *testing.T) {
+	t.Run("スキルのディレクトリがないとき、新しく作られる", func(t *testing.T) {
 		t.Parallel()
 
 		skillsDir := t.TempDir()
@@ -261,7 +261,7 @@ func TestInstallRootSkill(t *testing.T) {
 		".git/HEAD":           "ref: refs/heads/main\n",
 	}
 
-	t.Run("when a lockfile skill is the repository root, the install leaves out .git and the files vercel-labs/skills skips", func(t *testing.T) {
+	t.Run("ロックファイルのスキルがリポジトリのルートのとき、インストールは .git と vercel-labs/skills がスキップするファイルを含めない", func(t *testing.T) {
 		t.Parallel()
 		// Arrange
 		srcDir := t.TempDir()
@@ -290,7 +290,7 @@ func TestInstallRootSkill(t *testing.T) {
 func TestInstallSymlinks(t *testing.T) {
 	t.Parallel()
 
-	t.Run("when a lockfile skill links inside and outside the repository, the install holds the inside target and leaves the outside link out", func(t *testing.T) {
+	t.Run("ロックファイルのスキルがリポジトリの内外へリンクするとき、インストールは内側のリンク先を保持し外側へのリンクを含めない", func(t *testing.T) {
 		t.Parallel()
 		// Arrange
 		srcDir := t.TempDir()
@@ -337,7 +337,7 @@ func TestInstallSymlinks(t *testing.T) {
 		}
 	})
 
-	t.Run("when a lockfile skill links to a directory in the repository, the install holds the directory and stops at a link back into it", func(t *testing.T) {
+	t.Run("ロックファイルのスキルがリポジトリ内のディレクトリへリンクするとき、インストールはそのディレクトリを保持してそこへ戻るリンクで止まる", func(t *testing.T) {
 		t.Parallel()
 		// Arrange
 		srcDir := t.TempDir()

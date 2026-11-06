@@ -15,12 +15,12 @@ import (
 	"testing"
 )
 
-// snapshot maps each file and directory under dir to its mode, and a file
-// to its content too, or a link to its target.
-func snapshot(t *testing.T, dir string) map[string]string {
+type file struct{ Mode, Link, Data string }
+
+func snapshot(t *testing.T, dir string) map[string]file {
 	t.Helper()
 
-	files := map[string]string{}
+	files := map[string]file{}
 
 	err := filepath.WalkDir(dir, func(path string, d fs.DirEntry, err error) error {
 		if err != nil || path == dir {
@@ -33,7 +33,7 @@ func snapshot(t *testing.T, dir string) map[string]string {
 		}
 
 		rel, _ := filepath.Rel(dir, path)
-		entry := info.Mode().String()
+		e := file{Mode: info.Mode().String()}
 
 		switch {
 		case d.Type()&fs.ModeSymlink != 0:
@@ -42,17 +42,17 @@ func snapshot(t *testing.T, dir string) map[string]string {
 				return err
 			}
 
-			entry += " -> " + target
+			e.Link = target
 		case !d.IsDir():
 			b, err := os.ReadFile(path)
 			if err != nil {
 				return err
 			}
 
-			entry += "\n" + string(b)
+			e.Data = string(b)
 		}
 
-		files[filepath.ToSlash(rel)] = entry
+		files[filepath.ToSlash(rel)] = e
 
 		return nil
 	})
@@ -63,32 +63,26 @@ func snapshot(t *testing.T, dir string) map[string]string {
 	return files
 }
 
-// content returns the content of a file a snapshot records.
-func content(entry string) string {
-	_, data, _ := strings.Cut(entry, "\n")
-	return data
-}
-
-func assertSameFiles(t *testing.T, want, got map[string]string) {
+func assertSameFiles(t *testing.T, want, got map[string]file) {
 	t.Helper()
 
 	for _, k := range slices.Sorted(maps.Keys(want)) {
 		if g, ok := got[k]; !ok {
-			t.Errorf("missing %s", k)
+			t.Errorf("%s がない", k)
 		} else if g != want[k] {
-			t.Errorf("%s differs\nwant:\n%s\ngot:\n%s", k, want[k], g)
+			t.Errorf("%s が異なる\nwant:\n%+v\ngot:\n%+v", k, want[k], g)
 		}
 	}
 
 	for _, k := range slices.Sorted(maps.Keys(got)) {
 		if _, ok := want[k]; !ok {
-			t.Errorf("unexpected %s", k)
+			t.Errorf("想定外の %s", k)
 		}
 	}
 }
 
-func subtree(files map[string]string, prefix string) map[string]string {
-	out := map[string]string{}
+func subtree(files map[string]file, prefix string) map[string]file {
+	out := map[string]file{}
 
 	for k, v := range files {
 		if rest, ok := strings.CutPrefix(k, prefix+"/"); ok {
@@ -107,7 +101,6 @@ type updateResult struct {
 	Reason       string `json:"reason"`
 }
 
-// planUpdate returns what skolar update would do to the installed skills in dest.
 func planUpdate(t *testing.T, dest string) []updateResult {
 	t.Helper()
 
@@ -126,7 +119,7 @@ func planUpdate(t *testing.T, dest string) []updateResult {
 	}
 
 	if names := skillNames(t, dest); !slices.Equal(slices.Sorted(slices.Values(planned)), names) {
-		t.Fatalf("skolar update covered %v, want every installed skill %v", planned, names)
+		t.Fatalf("skolar update の対象は %v だが、インストール済みの全スキル %v が対象のはず", planned, names)
 	}
 
 	return installed
@@ -148,7 +141,7 @@ func assertMoved(t *testing.T, dest, name, from, to string) {
 	for _, r := range planUpdate(t, dest) {
 		switch {
 		case r.SkillName == name && (r.Status != "moved" || r.PreviousPath != from || r.Path != to):
-			t.Errorf("%s: %s from %q to %q, want moved from %q to %q", name, r.Status, r.PreviousPath, r.Path, from, to)
+			t.Errorf("%s: %s (%q から %q)。%q から %q への moved のはず", name, r.Status, r.PreviousPath, r.Path, from, to)
 		case r.SkillName != name && r.Status != "up-to-date":
 			t.Errorf("%s: %s %s", r.SkillName, r.Status, r.Reason)
 		}
@@ -156,7 +149,7 @@ func assertMoved(t *testing.T, dest, name, from, to string) {
 }
 
 func TestVercelFormat(t *testing.T) {
-	t.Run("detect: when vercel installed the skills, skolar reports them up to date and update changes nothing", func(t *testing.T) {
+	t.Run("検出: vercel がスキルをインストールした状態で、skolar は最新と報告して update は何も変更しない", func(t *testing.T) {
 		// Arrange
 		project := t.TempDir()
 		vercelAdd(t, project)
@@ -170,7 +163,7 @@ func TestVercelFormat(t *testing.T) {
 		assertSameFiles(t, before, snapshot(t, project))
 	})
 
-	t.Run("detect without skillPath: when the lock entries have no skillPath, skolar still finds every skill vercel installed", func(t *testing.T) {
+	t.Run("skillPath なしの検出: ロックエントリに skillPath がなくても、skolar は vercel がインストールした全スキルを見つける", func(t *testing.T) {
 		// Arrange
 		project := t.TempDir()
 		vercelAdd(t, project)
@@ -184,7 +177,7 @@ func TestVercelFormat(t *testing.T) {
 		assertAllUpToDate(t, filepath.Join(project, ".agents", "skills"))
 	})
 
-	t.Run("follow a move: when a skillPath no longer exists upstream, skolar reports the move and update restores the lock entry vercel writes", func(t *testing.T) {
+	t.Run("移動の追跡: skillPath が上流になくなったとき、skolar は移動を報告して update は vercel が書くロックエントリに戻す", func(t *testing.T) {
 		// Arrange
 		project := t.TempDir()
 		vercelAdd(t, project)
@@ -202,7 +195,7 @@ func TestVercelFormat(t *testing.T) {
 		assertSameFiles(t, before, snapshot(t, project))
 	})
 
-	t.Run("install: when skolar installs every skill vercel installs into a lockfile project, files and lock entries match and vercel update changes nothing", func(t *testing.T) {
+	t.Run("インストール: ロックファイルのあるプロジェクトに vercel と同じスキルを skolar がインストールすると、ファイルとロックエントリが一致して vercel update は何も変更しない", func(t *testing.T) {
 		// Arrange
 		vercel, own := t.TempDir(), t.TempDir()
 		vercelAdd(t, vercel)
@@ -231,23 +224,23 @@ func TestVercelFormat(t *testing.T) {
 		var wantLock, gotLock struct {
 			Skills map[string]json.RawMessage `json:"skills"`
 		}
-		if err := json.Unmarshal([]byte(content(want["skills-lock.json"])), &wantLock); err != nil {
+		if err := json.Unmarshal([]byte(want["skills-lock.json"].Data), &wantLock); err != nil {
 			t.Fatal(err)
 		}
 
-		if err := json.Unmarshal([]byte(content(installed["skills-lock.json"])), &gotLock); err != nil {
+		if err := json.Unmarshal([]byte(installed["skills-lock.json"].Data), &gotLock); err != nil {
 			t.Fatal(err)
 		}
 
 		for name, entry := range wantLock.Skills {
 			got, ok := gotLock.Skills[name]
 			if !ok {
-				t.Errorf("lock entry %s missing", name)
+				t.Errorf("ロックエントリ %s がない", name)
 				continue
 			}
 
 			if !bytes.Equal(compactJSON(t, entry), compactJSON(t, got)) {
-				t.Errorf("lock entry %s\nwant: %s\ngot:  %s", name, entry, got)
+				t.Errorf("ロックエントリ %s\nwant: %s\ngot:  %s", name, entry, got)
 			}
 		}
 
@@ -297,7 +290,7 @@ func compactJSON(t *testing.T, raw json.RawMessage) []byte {
 }
 
 func TestGhFormat(t *testing.T) {
-	t.Run("detect: when gh installed the skills, skolar reports them up to date and update changes nothing", func(t *testing.T) {
+	t.Run("検出: gh がスキルをインストールした状態で、skolar は最新と報告して update は何も変更しない", func(t *testing.T) {
 		// Arrange
 		dest := filepath.Join(t.TempDir(), "skills")
 		ghInstall(t, dest, "--all")
@@ -311,7 +304,7 @@ func TestGhFormat(t *testing.T) {
 		assertSameFiles(t, before, snapshot(t, dest))
 	})
 
-	t.Run("follow a move: when a github-path no longer exists upstream, skolar reports the move and update restores the files gh installs", func(t *testing.T) {
+	t.Run("移動の追跡: github-path が上流になくなったとき、skolar は移動を報告して update は gh がインストールするファイルに戻す", func(t *testing.T) {
 		// Arrange
 		dest := filepath.Join(t.TempDir(), "skills")
 		ghInstall(t, dest, "alpha")
@@ -335,7 +328,7 @@ func TestGhFormat(t *testing.T) {
 		assertSameFiles(t, before, snapshot(t, dest))
 	})
 
-	t.Run("install: when skolar installs without a lockfile, files match a gh install and gh update changes nothing", func(t *testing.T) {
+	t.Run("インストール: ロックファイルなしで skolar がインストールすると、ファイルは gh のインストールと一致して gh update は何も変更しない", func(t *testing.T) {
 		// Arrange
 		gh, own := filepath.Join(t.TempDir(), "skills"), filepath.Join(t.TempDir(), "skills")
 		ghInstall(t, gh, "--all")
@@ -354,7 +347,7 @@ func TestGhFormat(t *testing.T) {
 		assertSameFiles(t, installed, snapshot(t, own))
 	})
 
-	t.Run("update: when an unpinned install is behind the latest release, skolar update yields the same files as gh update", func(t *testing.T) {
+	t.Run("更新: 固定なしのインストールが最新リリースより古いとき、skolar update は gh update と同じファイルになる", func(t *testing.T) {
 		// Arrange
 		gh, own := filepath.Join(t.TempDir(), "skills"), filepath.Join(t.TempDir(), "skills")
 		for _, dest := range []string{gh, own} {
@@ -370,7 +363,7 @@ func TestGhFormat(t *testing.T) {
 		assertSameFiles(t, snapshot(t, gh), snapshot(t, own))
 	})
 
-	t.Run("hand back: when skolar updated a gh install and upstream is unchanged, gh update changes nothing", func(t *testing.T) {
+	t.Run("引き渡し: skolar が gh のインストールを更新し上流が変わらないとき、gh update は何も変更しない", func(t *testing.T) {
 		// Arrange
 		dest := filepath.Join(t.TempDir(), "skills")
 		ghInstall(t, dest, "alpha", "--pin", "v1.0.0")
@@ -385,7 +378,7 @@ func TestGhFormat(t *testing.T) {
 		assertSameFiles(t, before, snapshot(t, dest))
 	})
 
-	t.Run("reinstall: when gh reinstalls a skill skolar updated, the files match a fresh gh install", func(t *testing.T) {
+	t.Run("再インストール: skolar が更新したスキルを gh が再インストールすると、ファイルは新規の gh インストールと一致する", func(t *testing.T) {
 		// Arrange
 		gh, own := filepath.Join(t.TempDir(), "skills"), filepath.Join(t.TempDir(), "skills")
 		ghInstall(t, gh, "alpha")
@@ -401,7 +394,6 @@ func TestGhFormat(t *testing.T) {
 	})
 }
 
-// unpin turns a pinned gh install into an unpinned one at the same version.
 func unpin(t *testing.T, skillMD string) {
 	t.Helper()
 
@@ -428,7 +420,7 @@ func TestGhUndiscoverableLayouts(t *testing.T) {
 		{"root-skill", "."},
 		{"theta", "extras/theta"},
 	} {
-		t.Run("undiscoverable path: when skolar records "+tc.skill+" in gh format, the metadata holds its real path and gh update leaves the outdated install alone until gh can discover "+tc.path, func(t *testing.T) {
+		t.Run("検出不能なパス: skolar が "+tc.skill+" を gh 形式で記録すると、メタデータは実際のパスを保持して gh が "+tc.path+" を検出できるようになるまで gh update は古いインストールに触れない", func(t *testing.T) {
 			// Arrange
 			dir := filepath.Join(t.TempDir(), "skills")
 			run(t, filepath.Dir(dir), skolar, "add", fixtureRepo+"#v1.0.0", "-s", tc.skill, "-d", dir, "-y")
@@ -440,8 +432,8 @@ func TestGhUndiscoverableLayouts(t *testing.T) {
 			ghUpdate(t, homeOf(t), dir, "--all")
 
 			// Assert
-			if got := metadataValue(before[tc.skill+"/SKILL.md"], "github-path"); got != tc.path {
-				t.Errorf("github-path = %q, want %q", got, tc.path)
+			if got := metadataValue(before[tc.skill+"/SKILL.md"].Data, "github-path"); got != tc.path {
+				t.Errorf("github-path = %q、want %q", got, tc.path)
 			}
 
 			assertSameFiles(t, before, snapshot(t, dir))
@@ -460,7 +452,7 @@ func metadataValue(skillMD, key string) string {
 }
 
 func TestRecordChoice(t *testing.T) {
-	t.Run("when the project has a lockfile, skolar records a skill added to a custom directory in gh metadata and leaves the lockfile alone", func(t *testing.T) {
+	t.Run("ロックファイルのあるプロジェクトで独自ディレクトリにスキルを追加すると、skolar は gh メタデータに記録してロックファイルは変更しない", func(t *testing.T) {
 		// Arrange
 		project := t.TempDir()
 		vercelAdd(t, project)
@@ -471,16 +463,16 @@ func TestRecordChoice(t *testing.T) {
 		run(t, project, skolar, "add", fixtureRepo, "-s", "alpha", "-d", dir, "-y")
 
 		// Assert
-		if got := metadataValue(snapshot(t, dir)["alpha/SKILL.md"], "github-repo"); got != fixtureURL {
-			t.Errorf("github-repo = %q, want %q", got, fixtureURL)
+		if got := metadataValue(snapshot(t, dir)["alpha/SKILL.md"].Data, "github-repo"); got != fixtureURL {
+			t.Errorf("github-repo = %q、want %q", got, fixtureURL)
 		}
 
 		if got := snapshot(t, project)["skills-lock.json"]; got != lockBefore {
-			t.Errorf("skills-lock.json changed:\n%s", got)
+			t.Errorf("skills-lock.json が変化した:\n%s", got)
 		}
 	})
 
-	t.Run("when the directory is custom, adding a source gh metadata can't record fails and writes nothing", func(t *testing.T) {
+	t.Run("独自ディレクトリへ gh メタデータで記録できないソースを追加すると、失敗し何も書き込まない", func(t *testing.T) {
 		// Arrange
 		src := t.TempDir()
 		run(t, src, "git", "init", "-q")
@@ -505,11 +497,11 @@ func TestRecordChoice(t *testing.T) {
 
 		// Assert
 		if err == nil {
-			t.Fatalf("skolar add succeeded:\n%s", out)
+			t.Fatalf("skolar add が成功した:\n%s", out)
 		}
 
 		if files := snapshot(t, project); len(files) != 0 {
-			t.Errorf("skolar add wrote files: %v", slices.Sorted(maps.Keys(files)))
+			t.Errorf("skolar add がファイルを書き込んだ: %v", slices.Sorted(maps.Keys(files)))
 		}
 	})
 }

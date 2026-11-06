@@ -10,25 +10,25 @@ import (
 
 const frontmatterDelimiter = "---"
 
-// SourceMetadata describes where an installed skill came from, as recorded
-// in SKILL.md frontmatter by gh-compatible tooling (gh skill).
+// SourceMetadata はインストール済みスキルの出どころを表す。gh 互換ツール (gh skill) が
+// SKILL.md のフロントマターに記録したものである
 type SourceMetadata struct {
-	RepoURL   string // metadata.github-repo, e.g. "https://github.com/owner/repo"
-	Ref       string // metadata.github-ref, e.g. "refs/heads/main", "refs/tags/v1.0.0", or a commit SHA
+	RepoURL   string // metadata.github-repo。例: "https://github.com/owner/repo"
+	Ref       string // metadata.github-ref。例: "refs/heads/main"、"refs/tags/v1.0.0"、コミット SHA
 	TreeSHA   string // metadata.github-tree-sha
-	Path      string // metadata.github-path, e.g. "skills/foo"
-	Pinned    string // metadata.github-pinned (empty = unpinned)
+	Path      string // metadata.github-path。例: "skills/foo"
+	Pinned    string // metadata.github-pinned (空なら固定なし)
 	LocalPath string // metadata.local-path
 }
 
-// IsGitHub reports whether the skill was installed from a GitHub repository.
+// IsGitHub はスキルが GitHub リポジトリからインストールされたかを返す
 func (m SourceMetadata) IsGitHub() bool { return m.RepoURL != "" }
 
-// IsLocal reports whether the skill was installed from a local directory.
+// IsLocal はスキルがローカルのディレクトリからインストールされたかを返す
 func (m SourceMetadata) IsLocal() bool { return m.LocalPath != "" }
 
-// ParseSourceMetadata reads gh-compatible source metadata from SKILL.md content.
-// Content without frontmatter yields zero metadata and no error.
+// ParseSourceMetadata は SKILL.md の内容から gh 互換のソースのメタデータを読む。
+// フロントマターがない内容はエラーなしでゼロ値のメタデータになる
 func ParseSourceMetadata(content string) (SourceMetadata, error) {
 	raw, _, err := parseFrontmatter(content)
 	if err != nil {
@@ -47,9 +47,8 @@ func ParseSourceMetadata(content string) (SourceMetadata, error) {
 	}, nil
 }
 
-// InjectSourceMetadata merges gh-compatible source metadata into SKILL.md
-// content, preserving other frontmatter keys and the body. A frontmatter
-// block is created when the content has none.
+// InjectSourceMetadata は gh 互換のソースのメタデータを SKILL.md の内容にマージし、
+// ほかのフロントマターのキーと本文は保つ。フロントマターがなければ作る
 func InjectSourceMetadata(content string, m SourceMetadata) (string, error) {
 	raw, body, err := parseFrontmatter(content)
 	if err != nil {
@@ -65,7 +64,7 @@ func InjectSourceMetadata(content string, m SourceMetadata) (string, error) {
 		meta = make(map[string]any)
 	}
 
-	// Legacy keys written by older gh versions.
+	// 古い gh が書いた旧形式のキー
 	delete(meta, "github-owner")
 	delete(meta, "github-sha")
 
@@ -99,10 +98,9 @@ func stringValue(meta map[string]any, key string) string {
 	return value
 }
 
-// parseFrontmatter splits SKILL.md content into its YAML frontmatter map and
-// body. Without a frontmatter block it returns a nil map and the full content
-// as body. The delimiter handling intentionally mirrors gh skill (cli/cli)
-// so injected files stay byte-compatible.
+// parseFrontmatter は SKILL.md の内容を YAML フロントマターの map と本文に分ける。
+// フロントマターがなければ nil の map と全体を本文として返す。区切りの扱いは
+// 注入後のファイルがバイト単位で互換になるよう、意図的に gh skill (cli/cli) に合わせている
 func parseFrontmatter(content string) (map[string]any, string, error) {
 	trimmed := strings.TrimLeft(content, "\r\n")
 	if !strings.HasPrefix(trimmed, frontmatterDelimiter) {
@@ -118,7 +116,7 @@ func parseFrontmatter(content string) (map[string]any, string, error) {
 
 	var raw map[string]any
 	if err := yaml.Unmarshal([]byte(before), &raw); err != nil {
-		return nil, "", fmt.Errorf("invalid frontmatter YAML: %w", err)
+		return nil, "", fmt.Errorf("フロントマターの YAML が不正です: %w", err)
 	}
 
 	body := strings.TrimLeft(after, "\r\n")
@@ -129,7 +127,7 @@ func parseFrontmatter(content string) (map[string]any, string, error) {
 func serializeFrontmatter(raw map[string]any, body string) (string, error) {
 	yamlBytes, err := yaml.Marshal(raw)
 	if err != nil {
-		return "", fmt.Errorf("serialize frontmatter: %w", err)
+		return "", fmt.Errorf("フロントマターのシリアライズ: %w", err)
 	}
 
 	var buf bytes.Buffer

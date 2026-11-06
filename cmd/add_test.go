@@ -57,7 +57,7 @@ func TestAddDryRun(t *testing.T) {
 		"skills/beta/SKILL.md":  "# Beta\n",
 	})
 
-	t.Run("lists discovered skills", func(t *testing.T) {
+	t.Run("--dry-run を指定したとき、探索したスキルを一覧表示する", func(t *testing.T) {
 		t.Parallel()
 
 		var out bytes.Buffer
@@ -80,7 +80,7 @@ func TestAddDryRun(t *testing.T) {
 		}
 	})
 
-	t.Run("requires source argument", func(t *testing.T) {
+	t.Run("ソース引数がないとき、エラーになる", func(t *testing.T) {
 		t.Parallel()
 
 		root := cmd.NewRootCmd("test")
@@ -96,7 +96,7 @@ func TestAddDryRun(t *testing.T) {
 func TestAddSkillFlag(t *testing.T) {
 	t.Parallel()
 
-	t.Run("--skill flag is registered", func(t *testing.T) {
+	t.Run("--skill フラグが登録されている", func(t *testing.T) {
 		t.Parallel()
 
 		root := cmd.NewRootCmd("test")
@@ -108,7 +108,7 @@ func TestAddSkillFlag(t *testing.T) {
 		}
 	})
 
-	t.Run("-s shorthand works", func(t *testing.T) {
+	t.Run("-s の短縮形が使える", func(t *testing.T) {
 		t.Parallel()
 
 		root := cmd.NewRootCmd("test")
@@ -130,7 +130,7 @@ func TestAddInstall(t *testing.T) {
 		"skills/beta/SKILL.md":  "# Beta\n",
 	})
 
-	t.Run("installs selected skill with --skill flag", func(t *testing.T) {
+	t.Run("--skill を指定したとき、選択したスキルだけをインストールする", func(t *testing.T) {
 		t.Parallel()
 
 		skillsDir := filepath.Join(t.TempDir(), ".agents", "skills")
@@ -141,7 +141,6 @@ func TestAddInstall(t *testing.T) {
 			t.Fatalf("execute error: %v", err)
 		}
 
-		// Verify skill files installed.
 		data, err := os.ReadFile(filepath.Join(skillsDir, "alpha", "SKILL.md"))
 		if err != nil {
 			t.Fatalf("expected alpha/SKILL.md: %v", err)
@@ -160,12 +159,10 @@ func TestAddInstall(t *testing.T) {
 			t.Errorf("content = %q, want %q", string(data), "alpha ref\n")
 		}
 
-		// Beta should NOT be installed.
 		if _, err := os.Stat(filepath.Join(skillsDir, "beta")); !errors.Is(err, os.ErrNotExist) {
 			t.Error("beta should not be installed when --skill alpha is specified")
 		}
 
-		// Verify lockfile exists and has correct entry.
 		lockData, err := os.ReadFile(lock.FilePath(skillsDir))
 		if err != nil {
 			t.Fatalf("expected skills-lock.json: %v", err)
@@ -181,7 +178,7 @@ func TestAddInstall(t *testing.T) {
 		}
 	})
 
-	t.Run("installs all skills without --skill flag", func(t *testing.T) {
+	t.Run("--skill を指定しないとき、すべてのスキルをインストールする", func(t *testing.T) {
 		t.Parallel()
 
 		skillsDir := filepath.Join(t.TempDir(), ".agents", "skills")
@@ -192,7 +189,6 @@ func TestAddInstall(t *testing.T) {
 			t.Fatalf("execute error: %v", err)
 		}
 
-		// Both skills should be installed.
 		if _, err := os.Stat(filepath.Join(skillsDir, "alpha", "SKILL.md")); err != nil {
 			t.Errorf("expected alpha/SKILL.md: %v", err)
 		}
@@ -216,7 +212,7 @@ func TestAddInstall(t *testing.T) {
 		}
 	})
 
-	t.Run("persists ref when source uses ref fragment", func(t *testing.T) {
+	t.Run("ソースが ref フラグメントを使うとき、ref が記録される", func(t *testing.T) {
 		t.Parallel()
 
 		bareURLWithRefs := initBareRepoWithRefs(t)
@@ -248,7 +244,7 @@ func TestAddInstall(t *testing.T) {
 		}
 	})
 
-	t.Run("merges lockfile on second add from different source", func(t *testing.T) {
+	t.Run("別のソースから2回目に追加したとき、ロックファイルがマージされる", func(t *testing.T) {
 		t.Parallel()
 
 		bareURL2 := testutil.BareRepo(t, map[string]string{
@@ -257,7 +253,6 @@ func TestAddInstall(t *testing.T) {
 
 		skillsDir := filepath.Join(t.TempDir(), ".agents", "skills")
 
-		// First add.
 		root1 := cmd.NewRootCmd("test")
 		root1.SetArgs([]string{"add", "-s", "alpha", "-d", skillsDir, bareURL})
 
@@ -265,7 +260,6 @@ func TestAddInstall(t *testing.T) {
 			t.Fatalf("first add error: %v", err)
 		}
 
-		// Second add from different source.
 		root2 := cmd.NewRootCmd("test")
 		root2.SetArgs([]string{"add", "-d", skillsDir, bareURL2})
 
@@ -273,7 +267,6 @@ func TestAddInstall(t *testing.T) {
 			t.Fatalf("second add error: %v", err)
 		}
 
-		// Both alpha and gamma should exist.
 		if _, err := os.Stat(filepath.Join(skillsDir, "alpha", "SKILL.md")); err != nil {
 			t.Error("expected alpha to still be installed")
 		}
@@ -297,7 +290,7 @@ func TestAddInstall(t *testing.T) {
 		}
 	})
 
-	t.Run("errors when --skill specifies nonexistent skill", func(t *testing.T) {
+	t.Run("--skill が存在しないスキルを指定したとき、エラーになる", func(t *testing.T) {
 		t.Parallel()
 
 		skillsDir := filepath.Join(t.TempDir(), ".agents", "skills")
@@ -309,12 +302,12 @@ func TestAddInstall(t *testing.T) {
 			t.Fatal("expected error for nonexistent skill")
 		}
 
-		if !strings.Contains(err.Error(), "no skills found") {
+		if !strings.Contains(err.Error(), "インストールするスキルが見つかりません") {
 			t.Errorf("error = %q, want containing 'no skills found'", err.Error())
 		}
 	})
 
-	t.Run("when the directory is custom, a dry run of a source gh skill metadata can't record fails before printing a plan", func(t *testing.T) {
+	t.Run("カスタムディレクトリで gh skill のメタデータに記録できないソースを --dry-run したとき、計画を表示する前に失敗する", func(t *testing.T) {
 		t.Parallel()
 		// Arrange
 		var out bytes.Buffer
@@ -327,7 +320,7 @@ func TestAddInstall(t *testing.T) {
 		err := root.Execute()
 
 		// Assert
-		if err == nil || !strings.Contains(err.Error(), "skills-lock.json records only") {
+		if err == nil || !strings.Contains(err.Error(), "skills-lock.json に記録できるのは") {
 			t.Fatalf("add error = %v, want an error about the lockfile's directory", err)
 		}
 
@@ -338,7 +331,6 @@ func TestAddInstall(t *testing.T) {
 }
 
 func TestAddOverwrite(t *testing.T) {
-	// Not parallel: overrides IsTTY.
 	origIsTTY := cmd.IsTTY
 	cmd.IsTTY = func() bool { return false }
 
@@ -362,7 +354,7 @@ func TestAddOverwrite(t *testing.T) {
 		return skillsDir
 	}
 
-	t.Run("when --dry-run is given over an existing skill, adding marks it as overwrite and keeps it", func(t *testing.T) {
+	t.Run("既存のスキルに --dry-run を指定したとき、追加は上書きと表示してスキルを残す", func(t *testing.T) {
 		// Arrange
 		skillsDir := setup(t)
 
@@ -379,7 +371,7 @@ func TestAddOverwrite(t *testing.T) {
 			t.Fatalf("add: %v", err)
 		}
 
-		if want := "overwrite " + filepath.Join(skillsDir, "alpha"); !strings.Contains(out.String(), want) {
+		if want := "上書き " + filepath.Join(skillsDir, "alpha"); !strings.Contains(out.String(), want) {
 			t.Errorf("output = %q, want %q", out.String(), want)
 		}
 
@@ -388,7 +380,7 @@ func TestAddOverwrite(t *testing.T) {
 		}
 	})
 
-	t.Run("when an existing skill would be overwritten without a TTY or --yes, adding fails and keeps it", func(t *testing.T) {
+	t.Run("TTY も --yes もなく既存のスキルを上書きしようとしたとき、追加は失敗してスキルを残す", func(t *testing.T) {
 		// Arrange
 		skillsDir := setup(t)
 		root := cmd.NewRootCmd("test")
@@ -399,7 +391,7 @@ func TestAddOverwrite(t *testing.T) {
 		err := root.Execute()
 
 		// Assert
-		if err == nil || !strings.Contains(err.Error(), "confirmation required") {
+		if err == nil || !strings.Contains(err.Error(), "確認が必要です") {
 			t.Fatalf("err = %v, want confirmation required", err)
 		}
 
@@ -416,7 +408,7 @@ func TestAddSelection(t *testing.T) {
 		"extras/deep/far/SKILL.md": "# Far\n",
 	})
 
-	t.Run("when no skill is named, add installs only the skills either tool finds by default", func(t *testing.T) {
+	t.Run("スキルを指定しないとき、追加はどちらのツールも既定で見つけるスキルだけをインストールする", func(t *testing.T) {
 		t.Parallel()
 		// Arrange
 		dir := filepath.Join(t.TempDir(), ".agents", "skills")
@@ -434,7 +426,7 @@ func TestAddSelection(t *testing.T) {
 		}
 	})
 
-	t.Run("when a skill outside the defaults is named, add installs it", func(t *testing.T) {
+	t.Run("既定の対象外のスキルを指定したとき、追加はそのスキルをインストールする", func(t *testing.T) {
 		t.Parallel()
 		// Arrange
 		dir := filepath.Join(t.TempDir(), ".agents", "skills")

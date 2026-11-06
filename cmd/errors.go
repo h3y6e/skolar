@@ -8,7 +8,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// Error codes are part of the --json output; renaming one is breaking.
 const (
 	codeFailed               = "failed"
 	codeUsage                = "usage"
@@ -47,7 +46,7 @@ func checkFailed(names []string) error {
 		return nil
 	}
 
-	return &cliError{code: codeCheckFailed, err: fmt.Errorf("could not check %s", strings.Join(names, ", "))}
+	return &cliError{code: codeCheckFailed, err: fmt.Errorf("%s を確認できませんでした", strings.Join(names, ", "))}
 }
 
 type errorRecord struct {

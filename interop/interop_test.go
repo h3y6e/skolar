@@ -1,7 +1,7 @@
 //go:build interop
 
-// Package interop runs skolar against the upstream CLIs pinned by flake.lock
-// (vercel-labs/skills as `skills`, and `gh skill`) on the public fixture repo.
+// Package interop は公開フィクスチャリポジトリを使い、flake.lock で固定した
+// 上流の CLI (`skills` としての vercel-labs/skills と `gh skill`) に対して skolar を実行する
 package interop
 
 import (
@@ -28,7 +28,7 @@ func TestMain(m *testing.M) {
 	if err != nil {
 		panic(err)
 	}
-	// The sandboxed HOME hides gh's stored login, so pass it as GH_TOKEN.
+	// サンドボックス化した HOME では gh の保存済みログインが見えないので GH_TOKEN として渡す
 	if os.Getenv("GH_TOKEN") == "" {
 		if token, err := exec.CommandContext(context.Background(), "gh", "auth", "token").Output(); err == nil {
 			if err := os.Setenv("GH_TOKEN", strings.TrimSpace(string(token))); err != nil {
@@ -45,7 +45,7 @@ func TestMain(m *testing.M) {
 		panic(err)
 	}
 
-	// macOS checks a new binary on its first run, which would land in the first benchmark.
+	// macOS は新しいバイナリを初回実行時に検査する。その時間が最初のベンチマークに入らないよう先に一度実行しておく
 	if err := exec.CommandContext(context.Background(), skolar, "--version").Run(); err != nil {
 		panic(err)
 	}
@@ -75,8 +75,6 @@ func TestMain(m *testing.M) {
 
 var homes sync.Map
 
-// homeOf gives each scenario's subprocesses a HOME of their own, so gh skill's
-// global lock and other user state stay out of the real home directory.
 func homeOf(tb testing.TB) string {
 	tb.Helper()
 
@@ -121,15 +119,15 @@ func runStderr(tb testing.TB, dir, name string, args ...string) (string, string)
 	return runIn(tb, homeOf(tb), dir, name, args...)
 }
 
-// ghUpdate runs gh skill update and fails on the warnings gh prints when it
-// skips a skill, since it still exits 0.
+// ghUpdate は gh skill update を実行し、gh がスキルを飛ばすときに出す警告を失敗として扱う。
+// 警告が出ても終了コードは 0 になるためである
 func ghUpdate(tb testing.TB, home, dir string, args ...string) {
 	tb.Helper()
 
 	_, stderr := runIn(tb, home, filepath.Dir(dir), "gh", append([]string{"skill", "update", "--dir", dir}, args...)...)
 	for line := range strings.Lines(stderr) {
 		if strings.HasPrefix(line, "!") {
-			tb.Errorf("gh skill update warned: %s", strings.TrimSpace(line))
+			tb.Errorf("gh skill update が警告した: %s", strings.TrimSpace(line))
 		}
 	}
 }

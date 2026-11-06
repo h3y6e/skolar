@@ -1,4 +1,4 @@
-// Package lock reads and writes skills-lock.json, the lockfile vercel-labs/skills shares.
+// Package lock は vercel-labs/skills と共有するロックファイル skills-lock.json を読み書きする
 package lock
 
 import (
@@ -9,22 +9,22 @@ import (
 	"path/filepath"
 )
 
-// FileName is the standard lockfile name (compatible with vercel-labs/skills).
+// FileName は標準のロックファイル名である (vercel-labs/skills と互換)
 const FileName = "skills-lock.json"
 
-// DefaultDir is the skills directory the lockfile records.
+// DefaultDir はロックファイルが記録するスキルディレクトリである
 const DefaultDir = ".agents/skills"
 
-// File represents the lockfile contents.
+// File はロックファイルの内容を表す
 type File struct {
 	Version int              `json:"version"`
 	Skills  map[string]Entry `json:"skills"`
 }
 
-// SourceType is the kind of repository a skill is installed from.
+// SourceType はスキルのインストール元リポジトリの種類である
 type SourceType string
 
-// Source types as vercel-labs/skills records them.
+// vercel-labs/skills が記録するソースの種類
 const (
 	SourceGitHub SourceType = "github"
 	SourceGitLab SourceType = "gitlab"
@@ -32,12 +32,12 @@ const (
 	SourceLocal  SourceType = "local"
 )
 
-// Supported reports whether skills from this source type can be cloned and updated.
+// Supported はこのソースの種類のスキルを clone して更新できるかを返す
 func (t SourceType) Supported() bool {
 	return t == SourceGitHub || t == SourceGitLab || t == SourceGit || t == SourceLocal
 }
 
-// Entry represents a single skill in the lockfile.
+// Entry はロックファイル内の単一のスキルを表す
 type Entry struct {
 	Source       string     `json:"source"`
 	Ref          string     `json:"ref,omitempty"`
@@ -46,16 +46,16 @@ type Entry struct {
 	ComputedHash string     `json:"computedHash"`
 }
 
-// ReadFile reads the lockfile at path.
+// ReadFile は path のロックファイルを読む
 func ReadFile(path string) (File, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
-		return File{}, fmt.Errorf("read lockfile %q: %w", path, err)
+		return File{}, fmt.Errorf("ロックファイル %q の読み取り: %w", path, err)
 	}
 
 	var file File
 	if err := json.Unmarshal(data, &file); err != nil {
-		return File{}, fmt.Errorf("decode lockfile %q: %w", path, err)
+		return File{}, fmt.Errorf("ロックファイル %q のデコード: %w", path, err)
 	}
 
 	if file.Skills == nil {
@@ -65,7 +65,7 @@ func ReadFile(path string) (File, error) {
 	return file, nil
 }
 
-// WriteFile atomically writes the lockfile.
+// WriteFile はロックファイルをアトミックに書き込む
 func WriteFile(path string, file File) error {
 	if file.Skills == nil {
 		file.Skills = map[string]Entry{}
@@ -73,55 +73,55 @@ func WriteFile(path string, file File) error {
 
 	data, err := json.MarshalIndent(file, "", "  ")
 	if err != nil {
-		return fmt.Errorf("encode lockfile %q: %w", path, err)
+		return fmt.Errorf("ロックファイル %q のエンコード: %w", path, err)
 	}
 
 	data = append(data, '\n')
 
 	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
-		return fmt.Errorf("create lockfile parent %q: %w", path, err)
+		return fmt.Errorf("ロックファイル %q の親ディレクトリの作成: %w", path, err)
 	}
 
 	tmp, err := os.CreateTemp(filepath.Dir(path), ".skills-lock-*.json")
 	if err != nil {
-		return fmt.Errorf("create temp lockfile for %q: %w", path, err)
+		return fmt.Errorf("%q の一時ロックファイルの作成: %w", path, err)
 	}
 
 	tmpName := tmp.Name()
 	defer os.Remove(tmpName)
 
 	if err := tmp.Chmod(0o644); err != nil {
-		return errors.Join(fmt.Errorf("chmod temp lockfile for %q: %w", path, err), tmp.Close())
+		return errors.Join(fmt.Errorf("%q の一時ロックファイルの chmod: %w", path, err), tmp.Close())
 	}
 
 	if _, err := tmp.Write(data); err != nil {
-		return errors.Join(fmt.Errorf("write temp lockfile for %q: %w", path, err), tmp.Close())
+		return errors.Join(fmt.Errorf("%q の一時ロックファイルの書き込み: %w", path, err), tmp.Close())
 	}
 
 	if err := tmp.Close(); err != nil {
-		return fmt.Errorf("close temp lockfile for %q: %w", path, err)
+		return fmt.Errorf("%q の一時ロックファイルのクローズ: %w", path, err)
 	}
 
 	if err := os.Rename(tmpName, path); err != nil {
-		return fmt.Errorf("replace lockfile %q: %w", path, err)
+		return fmt.Errorf("ロックファイル %q の置換: %w", path, err)
 	}
 
 	return nil
 }
 
-// Layout describes the directory structure of installed skills and the lockfile.
+// Layout はインストール済みスキルとロックファイルのディレクトリ構造を表す
 type Layout struct {
 	Dir string
 }
 
-// NewLayout returns the layout of the skills directory skillsDir.
+// NewLayout はスキルディレクトリ skillsDir のレイアウトを返す
 func NewLayout(skillsDir string) Layout {
 	return Layout{Dir: filepath.Clean(skillsDir)}
 }
 
-// LockPath returns the lockfile path: two levels above an absolute skills
-// directory, the project root for .agents/skills, or in the working directory
-// for a relative one.
+// LockPath はロックファイルのパスを返す。絶対パスのスキルディレクトリなら二階層上
+// (.agents/skills ではプロジェクトルート)、相対パスなら
+// 作業ディレクトリである
 func (l Layout) LockPath() string {
 	if filepath.IsAbs(l.Dir) {
 		return filepath.Join(filepath.Dir(filepath.Dir(l.Dir)), FileName)
@@ -130,25 +130,25 @@ func (l Layout) LockPath() string {
 	return FileName
 }
 
-// SkillDir returns the directory of the installed skill name.
+// SkillDir はインストール済みスキル name のディレクトリを返す
 func (l Layout) SkillDir(name string) string {
 	return filepath.Join(l.Dir, name)
 }
 
-// FilePath returns the lockfile path for skillsDir.
+// FilePath は skillsDir のロックファイルのパスを返す
 func FilePath(skillsDir string) string {
 	return NewLayout(skillsDir).LockPath()
 }
 
-// UsesLockfile reports whether the lockfile records this layout's
-// directory, which holds only for DefaultDir beside the lockfile.
+// UsesLockfile はロックファイルがこのレイアウトのディレクトリを記録するかを返す。
+// これが成り立つのはロックファイルの隣にある DefaultDir だけである
 func (l Layout) UsesLockfile() bool {
 	rel, err := filepath.Rel(filepath.Dir(l.LockPath()), filepath.Clean(l.Dir))
 	return err == nil && rel == filepath.Clean(DefaultDir)
 }
 
-// ReadLockFile reads the layout's lockfile, or returns an empty one when the
-// layout does not use a lockfile or it does not exist yet.
+// ReadLockFile はレイアウトのロックファイルを読む。レイアウトがロックファイルを
+// 使わない場合やまだ存在しない場合は空のものを返す
 func (l Layout) ReadLockFile() (File, error) {
 	if !l.UsesLockfile() {
 		return File{Version: 1, Skills: map[string]Entry{}}, nil
@@ -162,8 +162,8 @@ func (l Layout) ReadLockFile() (File, error) {
 	return f, err
 }
 
-// Entries returns the lockfile's skills when the lockfile records this
-// layout's directory, and none otherwise.
+// Entries はロックファイルがこのレイアウトのディレクトリを記録している場合に
+// そのスキルを返し、そうでなければ何も返さない
 func (l Layout) Entries(f File) map[string]Entry {
 	if !l.UsesLockfile() {
 		return map[string]Entry{}

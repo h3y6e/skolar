@@ -17,33 +17,33 @@ import (
 	"sync"
 )
 
-// ErrNotCached reports that the cache lacks an object.
-var ErrNotCached = errors.New("not in the cache")
+// ErrNotCached はキャッシュにオブジェクトがないことを表す
+var ErrNotCached = errors.New("キャッシュにありません")
 
-// Snapshot is a commit of a remote repository, read from the cache.
+// Snapshot はキャッシュから読み取ったリモートリポジトリのコミットである
 type Snapshot struct {
 	Ref ResolvedRef
 	FS  fs.FS
-	// TreeSHA returns the git tree SHA of a repo-relative directory, "." for
-	// the root.
+	// TreeSHA はリポジトリ相対ディレクトリの git ツリー SHA を返す。
+	// ルートは "." である
 	TreeSHA func(dir string) (string, error)
 }
 
-// Cache holds the objects of remote repositories across runs, one bare
-// repository per remote, so that a commit fetched before is read offline.
-// It reads each repository through a single git process until Close.
+// Cache は実行をまたいでリモートリポジトリのオブジェクトを保持する。リモートごとに
+// ベアリポジトリを一つ持つため、取得済みのコミットはオフラインで読み取れる。
+// Close までは各リポジトリを単一の git プロセスで読み取る
 type Cache struct {
 	mu        sync.Mutex
 	repos     map[string]func() (*repo, error)
 	checkouts []*os.Root
 }
 
-// NewCache opens the cache.
+// NewCache はキャッシュを開く
 func NewCache() *Cache {
 	return &Cache{repos: map[string]func() (*repo, error){}}
 }
 
-// Close stops reading the cache.
+// Close はキャッシュの読み取りを止める
 func (c *Cache) Close() error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
@@ -63,9 +63,9 @@ func (c *Cache) Close() error {
 	return errors.Join(errs...)
 }
 
-// Checkout reads ref of cloneURL as git checkout writes it, converting line
-// endings and applying filters as .gitattributes and core.autocrlf direct,
-// fetching ref unless the cache holds it.
+// Checkout は cloneURL の ref を git checkout が書き出すとおりに読み取る。
+// .gitattributes と core.autocrlf の指定に従って改行コードの変換とフィルタを適用し、
+// キャッシュにない場合は ref を取得する
 func (c *Cache) Checkout(ctx context.Context, cloneURL string, ref ResolvedRef) (fs.FS, error) {
 	r, err := c.repo(ctx, cloneURL, objectFormat(ref.Object))
 	if err != nil {
@@ -91,7 +91,7 @@ func (c *Cache) Checkout(ctx context.Context, cloneURL string, ref ResolvedRef) 
 	c.checkouts = append(c.checkouts, root)
 	c.mu.Unlock()
 
-	// A private index keeps concurrent checkouts off the repository's index.lock.
+	// 並行するチェックアウトがリポジトリの index.lock を取り合わないよう専用のインデックスを使う
 	restore, err := gitCommand(ctx, "--git-dir", r.gitDir, "--work-tree", dir, "restore", "--source", tree, "--worktree", "--", ":/")
 	if err != nil {
 		return nil, err
@@ -107,7 +107,7 @@ func (c *Cache) Checkout(ctx context.Context, cloneURL string, ref ResolvedRef) 
 	return root.FS(), nil
 }
 
-// Fetch reads ref of cloneURL, fetching it unless the cache holds it.
+// Fetch は cloneURL の ref を読み取る。キャッシュになければ先に取得する
 func (c *Cache) Fetch(ctx context.Context, cloneURL string, ref ResolvedRef) (Snapshot, error) {
 	r, err := c.repo(ctx, cloneURL, objectFormat(ref.Object))
 	if err != nil {
@@ -124,7 +124,7 @@ func (c *Cache) Fetch(ctx context.Context, cloneURL string, ref ResolvedRef) (Sn
 	return Snapshot{Ref: ref, FS: t, TreeSHA: t.treeSHA}, nil
 }
 
-// Prefetch fetches ref of cloneURL unless the cache holds it.
+// Prefetch はキャッシュにない場合に cloneURL の ref を取得する
 func (c *Cache) Prefetch(ctx context.Context, cloneURL string, ref ResolvedRef) error {
 	r, err := c.repo(ctx, cloneURL, objectFormat(ref.Object))
 	if err != nil {
@@ -136,10 +136,10 @@ func (c *Cache) Prefetch(ctx context.Context, cloneURL string, ref ResolvedRef) 
 	return err
 }
 
-// ReadTree reads the tree treeSHA of cloneURL from the cache, offline.
+// ReadTree は cloneURL のツリー treeSHA をキャッシュからオフラインで読み取る
 func (c *Cache) ReadTree(ctx context.Context, cloneURL, treeSHA string) (fs.FS, error) {
 	if !isObjectID(treeSHA) {
-		return nil, fmt.Errorf("invalid tree SHA %q", treeSHA)
+		return nil, fmt.Errorf("不正なツリー SHA %q", treeSHA)
 	}
 
 	r, err := c.repo(ctx, cloneURL, objectFormat(treeSHA))
@@ -148,14 +148,12 @@ func (c *Cache) ReadTree(ctx context.Context, cloneURL, treeSHA string) (fs.FS, 
 	}
 
 	if typ, err := r.info(treeSHA); err != nil || typ != "tree" {
-		return nil, fmt.Errorf("tree %s: %w", treeSHA, ErrNotCached)
+		return nil, fmt.Errorf("ツリー %s: %w", treeSHA, ErrNotCached)
 	}
 
 	return r.tree(treeSHA), nil
 }
 
-// repo opens the repository of cloneURL in object format, keyed so that
-// the URLs one remote is named by, with or without .git, share it.
 func (c *Cache) repo(ctx context.Context, cloneURL, format string) (*repo, error) {
 	key := strings.TrimSuffix(strings.TrimSuffix(cloneURL, "/"), ".git") + "\x00" + format
 
@@ -172,8 +170,6 @@ func (c *Cache) repo(ctx context.Context, cloneURL, format string) (*repo, error
 	return open()
 }
 
-// repo is a bare repository in the cache, read through one
-// git cat-file --batch-command process.
 type repo struct {
 	gitDir string
 	mu     sync.Mutex
@@ -185,13 +181,12 @@ type repo struct {
 func openRepo(ctx context.Context, key, format string) (*repo, error) {
 	base, err := cacheRoot()
 	if err != nil {
-		return nil, fmt.Errorf("locate cache: %w", err)
+		return nil, fmt.Errorf("キャッシュの場所の特定: %w", err)
 	}
 
-	// Private repositories land here, so only the owner may enter.
 	root := filepath.Join(base, "skolar")
 	if err := os.MkdirAll(root, 0o700); err != nil {
-		return nil, fmt.Errorf("create cache: %w", err)
+		return nil, fmt.Errorf("キャッシュの作成: %w", err)
 	}
 
 	sum := sha256.Sum256([]byte(key))
@@ -201,7 +196,6 @@ func openRepo(ctx context.Context, key, format string) (*repo, error) {
 		return nil, err
 	}
 
-	// The reader outlives the call that opens it; Close stops it.
 	cmd, err := gitCommand(context.WithoutCancel(ctx), "--git-dir", r.gitDir, "cat-file", "--batch-command")
 	if err != nil {
 		return nil, err
@@ -226,8 +220,6 @@ func openRepo(ctx context.Context, key, format string) (*repo, error) {
 	return r, nil
 }
 
-// cacheRoot follows an absolute XDG_CACHE_HOME on every platform, and
-// otherwise the platform's user cache directory.
 func cacheRoot() (string, error) {
 	if dir := os.Getenv("XDG_CACHE_HOME"); filepath.IsAbs(dir) {
 		return dir, nil
@@ -258,8 +250,6 @@ func (r *repo) init(ctx context.Context, format string) error {
 	return err
 }
 
-// fetch returns the root tree of ref, fetching ref unless the repository
-// holds it.
 func (r *repo) fetch(ctx context.Context, cloneURL string, ref ResolvedRef) (string, error) {
 	unlock, err := lock(ctx, r.gitDir+".lock")
 	if err != nil {
@@ -267,17 +257,15 @@ func (r *repo) fetch(ctx context.Context, cloneURL string, ref ResolvedRef) (str
 	}
 	defer unlock()
 
-	// Only an object ID names what the remote holds now; a name the remote
-	// no longer advertises may still name a stale ref in the cache.
 	if isObjectID(ref.Object) {
 		if tree, err := r.peelTree(ref.Object); err == nil {
 			return tree, nil
 		}
 	}
 
-	// A ref per fetched version keeps its objects from gc for verify; a flat
-	// name keeps it from clashing with another, even on a case-insensitive
-	// file system.
+	// 取得したバージョンごとに ref を作って verify が使うオブジェクトを gc から守る。
+	// 名前を平坦にするのは大文字小文字を区別しないファイルシステムでも
+	// ほかの ref と衝突させないためである
 	local := ref.Object
 	if !isObjectID(local) {
 		sum := sha256.Sum256([]byte(ref.Full))
@@ -286,8 +274,8 @@ func (r *repo) fetch(ctx context.Context, cloneURL string, ref ResolvedRef) (str
 
 	local = "refs/skolar/" + local
 
-	// With every fetch in one pack, which git writes whole, an interrupted
-	// fetch leaves no objects behind, so a cached commit is complete.
+	// 取得した内容は常に一つのパックになり、git はパックを丸ごと書き込む。そのため
+	// 中断した取得はオブジェクトを残さず、キャッシュ済みのコミットは欠けない
 	if _, err := runGit(ctx, "-C", r.gitDir, "-c", "fetch.unpackLimit=1", "-c", "gc.autoDetach=false",
 		"fetch", "--quiet", "--depth", "1", "--no-tags", "--no-write-fetch-head", "--", cloneURL, "+"+ref.Full+":"+local); err != nil {
 		return "", err
@@ -296,7 +284,6 @@ func (r *repo) fetch(ctx context.Context, cloneURL string, ref ResolvedRef) (str
 	return r.peelTree(local)
 }
 
-// peelTree returns the root tree of the commit object names.
 func (r *repo) peelTree(object string) (string, error) {
 	if _, err := r.info(object + "^{commit}"); err != nil {
 		return "", err
@@ -305,7 +292,7 @@ func (r *repo) peelTree(object string) (string, error) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
-	oid, _, err := r.request("info", object+"^{tree}")
+	oid, _, err := r.requestLocked("info", object+"^{tree}")
 
 	return oid, err
 }
@@ -314,7 +301,7 @@ func (r *repo) info(object string) (string, error) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
-	_, typ, err := r.request("info", object)
+	_, typ, err := r.requestLocked("info", object)
 
 	return typ, err
 }
@@ -323,7 +310,7 @@ func (r *repo) contents(oid string) ([]byte, error) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
-	_, size, err := r.request("contents", oid)
+	_, size, err := r.requestLocked("contents", oid)
 	if err != nil {
 		return nil, err
 	}
@@ -341,11 +328,9 @@ func (r *repo) contents(oid string) ([]byte, error) {
 	return data[:n], nil
 }
 
-// request sends a cat-file command and returns the object ID with the type
-// for info, or the size for contents. The caller holds r.mu.
-func (r *repo) request(command, object string) (string, string, error) {
+func (r *repo) requestLocked(command, object string) (string, string, error) {
 	if strings.ContainsAny(object, "\n\r") {
-		return "", "", fmt.Errorf("invalid object name %q", object)
+		return "", "", fmt.Errorf("不正なオブジェクト名 %q", object)
 	}
 
 	if _, err := fmt.Fprintf(r.in, "%s %s\n", command, object); err != nil {
@@ -369,8 +354,6 @@ func (r *repo) request(command, object string) (string, string, error) {
 	return fields[0], fields[2], nil
 }
 
-// objectFormat names the hash algorithm of the object ID oid, which a
-// cache repository must share with its remote to fetch from it.
 func objectFormat(oid string) string {
 	if len(oid) == 64 {
 		return "sha256"

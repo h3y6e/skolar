@@ -8,19 +8,19 @@ import (
 	"golang.org/x/mod/semver"
 )
 
-// ResolvedRef is a git ref resolved against a remote repository.
+// ResolvedRef はリモートリポジトリに対して解決した git ref である
 type ResolvedRef struct {
-	// Full is the fully-qualified ref ("refs/heads/main", "refs/tags/v1.0.0"),
-	// or a raw commit SHA when the ref did not match any branch or tag.
+	// Full は完全修飾の ref ("refs/heads/main"、"refs/tags/v1.0.0") である。
+	// ref がどのブランチやタグにも一致しなかった場合はコミット SHA そのものである
 	Full string
-	// Object is the object the remote advertises for Full: a commit, a tag
-	// object for an annotated tag, or Full itself for a raw SHA.
+	// Object はリモートが Full について公開するオブジェクトである。コミット、
+	// 注釈付きタグならタグオブジェクト、SHA そのものなら Full 自身になる
 	Object string
 }
 
-// ResolveLatest resolves ref against a remote, preferring branches over
-// tags. When ref is empty, it resolves the latest non-prerelease semver tag,
-// falling back to the remote's default branch, as gh skill install does.
+// ResolveLatest はタグよりブランチを優先してリモートで ref を解決する。
+// ref が空ならプレリリースでない最新の semver タグに解決し、なければ
+// gh skill install と同様にリモートのデフォルトブランチに解決する
 func ResolveLatest(ctx context.Context, cloneURL, ref string) (ResolvedRef, error) {
 	if ref != "" {
 		return resolveExplicitRef(ctx, cloneURL, ref)
@@ -38,8 +38,8 @@ func ResolveLatest(ctx context.Context, cloneURL, ref string) (ResolvedRef, erro
 	return refs.head(cloneURL)
 }
 
-// ResolveDefault resolves ref against a remote, preferring branches over
-// tags, or the remote's default branch when ref is empty, as git clone does.
+// ResolveDefault はタグよりブランチを優先してリモートで ref を解決する。
+// ref が空なら git clone と同様にリモートのデフォルトブランチに解決する
 func ResolveDefault(ctx context.Context, cloneURL, ref string) (ResolvedRef, error) {
 	if ref != "" {
 		return resolveExplicitRef(ctx, cloneURL, ref)
@@ -70,7 +70,6 @@ func resolveExplicitRef(ctx context.Context, cloneURL, ref string) (ResolvedRef,
 		}
 	}
 
-	// Assume a commit SHA; fetching fails later if it does not exist.
 	return ResolvedRef{Full: ref, Object: ref}, nil
 }
 
@@ -92,7 +91,6 @@ func latestTag(refs remoteRefs) string {
 			continue
 		}
 
-		// Tags such as 1.0.0 and v1.0.0 rank equal; the name breaks the tie.
 		if c := semver.Compare(version, latestVersion); latestVersion == "" || c > 0 || c == 0 && name > latest {
 			latestVersion, latest = version, name
 		}
@@ -108,14 +106,12 @@ type remoteRefs struct {
 
 func (r remoteRefs) head(cloneURL string) (ResolvedRef, error) {
 	if r.headTarget == "" {
-		return ResolvedRef{}, fmt.Errorf("git ls-remote %q: could not determine default branch", cloneURL)
+		return ResolvedRef{}, fmt.Errorf("git ls-remote %q: デフォルトブランチを特定できません", cloneURL)
 	}
 
 	return ResolvedRef{Full: r.headTarget, Object: r.objects["HEAD"]}, nil
 }
 
-// lsRemote returns the refs the remote advertises matching patterns, with
-// the branch HEAD points to.
 func lsRemote(ctx context.Context, cloneURL string, patterns ...string) (remoteRefs, error) {
 	args := append([]string{"ls-remote", "--symref", "--", cloneURL}, patterns...)
 

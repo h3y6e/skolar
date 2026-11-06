@@ -14,17 +14,17 @@ import (
 	"github.com/h3y6e/skolar/internal/lock"
 )
 
-// InstalledSkill is a skill present in a destination directory whose SKILL.md
-// carries gh-compatible source metadata in its frontmatter.
+// InstalledSkill はインストール先のディレクトリにあるスキルで、その SKILL.md の
+// フロントマターに gh 互換のソースのメタデータがあるものである
 type InstalledSkill struct {
 	Name string
 	Dir  string
 	Meta SourceMetadata
 }
 
-// ScanInstalledSkills returns the skills in skillsDir that carry gh-compatible
-// source metadata, sorted by name. Skills without metadata, with unreadable
-// SKILL.md, or with invalid frontmatter are skipped.
+// ScanInstalledSkills は skillsDir のスキルのうち gh 互換のソースのメタデータを持つものを
+// 名前順に返す。メタデータのないスキル、SKILL.md を読めないスキル、
+// フロントマターが不正なスキルはスキップする
 func ScanInstalledSkills(skillsDir string) ([]InstalledSkill, error) {
 	entries, err := os.ReadDir(skillsDir)
 	if errors.Is(err, os.ErrNotExist) {
@@ -32,7 +32,7 @@ func ScanInstalledSkills(skillsDir string) ([]InstalledSkill, error) {
 	}
 
 	if err != nil {
-		return nil, fmt.Errorf("read skills directory %q: %w", skillsDir, err)
+		return nil, fmt.Errorf("スキルのディレクトリ %q の読み取り: %w", skillsDir, err)
 	}
 
 	var installed []InstalledSkill
@@ -68,16 +68,15 @@ func ScanInstalledSkills(skillsDir string) ([]InstalledSkill, error) {
 	return installed, nil
 }
 
-// PreferTrackedInstall reports whether add should install in gh skill format
-// (frontmatter metadata, no lockfile): when no lockfile exists yet and the
-// source is a GitHub repository. Other source types keep the lockfile format,
-// which unlike gh skill metadata can track them for updates.
+// PreferTrackedInstall は add が gh skill 形式 (フロントマターのメタデータでロックファイルなし) で
+// インストールすべきかを返す。まだロックファイルがなくソースが GitHub リポジトリの場合に
+// true になる。ほかのソース種別はロックファイル形式のままにする。ロックファイルなら
+// gh skill のメタデータと違って更新を追跡できるからである
 func PreferTrackedInstall(lockfileExists bool, sourceType lock.SourceType) bool {
 	return !lockfileExists && sourceType == lock.SourceGitHub
 }
 
-// UnmanagedSkills returns installed skills whose names are absent from the
-// lockfile-managed entries.
+// UnmanagedSkills は名前がロックファイルの管理下のエントリにないインストール済みスキルを返す
 func UnmanagedSkills(installed []InstalledSkill, managed map[string]lock.Entry) []InstalledSkill {
 	var foreign []InstalledSkill
 
@@ -90,10 +89,10 @@ func UnmanagedSkills(installed []InstalledSkill, managed map[string]lock.Entry) 
 	return foreign
 }
 
-// FilterInstalledBySource narrows installed skills to those installed from
-// the given source repository and, when the source has a ref, pinned to it.
-// An empty source keeps all skills. Skills installed from a local path never
-// match a repository source.
+// FilterInstalledBySource はインストール済みスキルを指定したソースリポジトリから
+// インストールされたものに絞る。ソースに ref があればその ref に固定されたものに絞る。
+// ソースが空なら全件を残す。ローカルのパスからインストールされたスキルは
+// リポジトリのソースには一致しない
 func FilterInstalledBySource(installed []InstalledSkill, source string) ([]InstalledSkill, error) {
 	if source == "" {
 		return installed, nil
@@ -122,18 +121,18 @@ func FilterInstalledBySource(installed []InstalledSkill, source string) ([]Insta
 	return filtered, nil
 }
 
-// UpstreamFuncs groups the git operations used to probe upstream
-// repositories. Replaceable in tests.
+// UpstreamFuncs は上流のリポジトリの調査に使う git 操作をまとめる。
+// テストでは差し替えられる
 type UpstreamFuncs struct {
-	// FetchLatest fetches the latest ref of repoURL (gh skill semantics:
-	// latest release, then default branch).
+	// FetchLatest は repoURL の最新の ref を取得する (gh skill の意味論では
+	// 最新のリリース、なければデフォルトブランチ)
 	FetchLatest func(repoURL string) (git.Snapshot, error)
-	// FetchTree reads the tree treeSHA of repoURL, fetching ref when the
-	// tree is not cached.
+	// FetchTree は repoURL のツリー treeSHA を読む。ツリーがキャッシュになければ
+	// ref を取得する
 	FetchTree func(repoURL, ref, treeSHA string) (fs.FS, error)
 }
 
-// NewUpstreamFuncs returns the production UpstreamFuncs, fetching through c.
+// NewUpstreamFuncs は c を通して取得する本番用の UpstreamFuncs を返す
 func NewUpstreamFuncs(ctx context.Context, c *git.Cache) UpstreamFuncs {
 	var prefetched onceMap[[2]string, struct{}]
 
@@ -160,12 +159,12 @@ func NewUpstreamFuncs(ctx context.Context, c *git.Cache) UpstreamFuncs {
 
 				return c.Prefetch(ctx, repoURL, resolved)
 			}); err != nil {
-				return nil, fmt.Errorf("fetch %s: %w", ref, err)
+				return nil, fmt.Errorf("%s の取得: %w", ref, err)
 			}
 
 			tree, err = c.ReadTree(ctx, repoURL, treeSHA)
 			if errors.Is(err, git.ErrNotCached) {
-				return nil, fmt.Errorf("%s no longer holds tree %s", ref, treeSHA)
+				return nil, fmt.Errorf("%s にツリー %s はもうありません", ref, treeSHA)
 			}
 
 			return tree, err
@@ -173,10 +172,6 @@ func NewUpstreamFuncs(ctx context.Context, c *git.Cache) UpstreamFuncs {
 	}
 }
 
-// partitionInstalled reports pinned, local and unlocatable gh skill installs
-// as candidates without fetching, and groups the rest by repository. Update
-// detection compares github-tree-sha with the upstream tree at the latest
-// ref, as gh skill update does.
 func partitionInstalled(installed []InstalledSkill) ([]UpdateCandidate, map[string][]InstalledSkill) {
 	byRepo := make(map[string][]InstalledSkill)
 
@@ -194,7 +189,7 @@ func partitionInstalled(installed []InstalledSkill) ([]UpdateCandidate, map[stri
 				Foreign:   true,
 			})
 		case s.Meta.Path == "":
-			candidates = append(candidates, failedCandidate(s, "missing github-path in skill metadata"))
+			candidates = append(candidates, failedCandidate(s, "スキルのメタデータに github-path がありません"))
 		default:
 			byRepo[s.Meta.RepoURL] = append(byRepo[s.Meta.RepoURL], s)
 		}
@@ -252,9 +247,6 @@ func resolveRepoCandidates(group []InstalledSkill, fns UpstreamFuncs) []UpdateCa
 	return append(candidates, newCandidates(candidates, upstream, candidates[0].Source)...)
 }
 
-// resolveTrackedUpstream finds the upstream skill at github-path even when
-// discovery skips it or it is not a directory, so that it fails on its own
-// content rather than passing for removed.
 func resolveTrackedUpstream(s InstalledSkill, repo fs.FS, upstream []DiscoveredSkill) (DiscoveredSkill, error) {
 	if mode, ok := lstat(repo, s.Meta.Path); ok && fs.ValidPath(s.Meta.Path) && (!mode.IsDir() || hasSkillMD(repo, s.Meta.Path)) {
 		return DiscoveredSkill{Name: s.Name, Path: s.Meta.Path, FS: subFS(repo, s.Meta.Path)}, nil
@@ -271,20 +263,17 @@ func fetchRepo(repoURL string, fns UpstreamFuncs) (git.Snapshot, []DiscoveredSki
 
 	snap, err := fns.FetchLatest(repoURL)
 	if err != nil {
-		return git.Snapshot{}, nil, fmt.Errorf("fetch %s: %w", source, err)
+		return git.Snapshot{}, nil, fmt.Errorf("%s の取得: %w", source, err)
 	}
 
 	upstream, err := DiscoverSkills(snap.FS)
 	if err != nil {
-		return git.Snapshot{}, nil, fmt.Errorf("discover skills in %s: %w", source, err)
+		return git.Snapshot{}, nil, fmt.Errorf("%s のスキルの探索: %w", source, err)
 	}
 
 	return snap, upstream, nil
 }
 
-// resolveTracked compares an installed skill with the upstream skill it
-// resolved to, staging the upstream skill with fresh metadata when update
-// would replace it.
 func resolveTracked(candidate UpdateCandidate, s InstalledSkill, up DiscoveredSkill, snap git.Snapshot) UpdateCandidate {
 	treeSHA, err := snap.TreeSHA(up.Path)
 	if err != nil {

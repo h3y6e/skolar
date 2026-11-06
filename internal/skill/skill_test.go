@@ -12,7 +12,7 @@ import (
 func TestDiscoverSkills(t *testing.T) {
 	t.Parallel()
 
-	t.Run("discovers skills under skills/ directory", func(t *testing.T) {
+	t.Run("skills/ ディレクトリがあるとき、その下のスキルが探索される", func(t *testing.T) {
 		t.Parallel()
 		root := t.TempDir()
 		testutil.WriteFiles(t, root, map[string]string{
@@ -46,7 +46,7 @@ func TestDiscoverSkills(t *testing.T) {
 		}
 	})
 
-	t.Run("falls back to root when no skills/ directory", func(t *testing.T) {
+	t.Run("skills/ ディレクトリがないとき、ルートが探索される", func(t *testing.T) {
 		t.Parallel()
 		root := t.TempDir()
 		testutil.WriteFiles(t, root, map[string]string{
@@ -68,7 +68,7 @@ func TestDiscoverSkills(t *testing.T) {
 		}
 	})
 
-	t.Run("when skills are namespaced one level deep, discovery finds them by leaf name with full path", func(t *testing.T) {
+	t.Run("スキルが 1 階層の名前空間に置かれているとき、探索は末端の名前とフルパスで見つける", func(t *testing.T) {
 		t.Parallel()
 
 		// Arrange
@@ -98,7 +98,7 @@ func TestDiscoverSkills(t *testing.T) {
 		}
 	})
 
-	t.Run("when flat and namespaced skills coexist, both are discovered", func(t *testing.T) {
+	t.Run("名前空間のないスキルと名前空間付きのスキルが混在するとき、両方が探索される", func(t *testing.T) {
 		t.Parallel()
 
 		// Arrange
@@ -128,7 +128,7 @@ func TestDiscoverSkills(t *testing.T) {
 		}
 	})
 
-	t.Run("when two namespaces contain the same leaf name, both are found and selection takes the first", func(t *testing.T) {
+	t.Run("2 つの名前空間に同じ末端の名前があるとき、両方が見つかって選択では最初のものが採られる", func(t *testing.T) {
 		t.Parallel()
 
 		// Arrange
@@ -151,7 +151,7 @@ func TestDiscoverSkills(t *testing.T) {
 		}
 	})
 
-	t.Run("when skills are discovered, Path records the repo-relative directory", func(t *testing.T) {
+	t.Run("スキルを探索したとき、Path にリポジトリからの相対ディレクトリが記録される", func(t *testing.T) {
 		t.Parallel()
 
 		// Arrange
@@ -185,7 +185,7 @@ func TestDiscoverSkills(t *testing.T) {
 		}
 	})
 
-	t.Run("when skills/ and a root-level directory both hold skills, both are defaults", func(t *testing.T) {
+	t.Run("skills/ とルート直下のディレクトリの両方にスキルがあるとき、両方が既定になる", func(t *testing.T) {
 		t.Parallel()
 		// Arrange
 		root := t.TempDir()
@@ -206,7 +206,7 @@ func TestDiscoverSkills(t *testing.T) {
 		}
 	})
 
-	t.Run("ignores directories without SKILL.md", func(t *testing.T) {
+	t.Run("SKILL.md のないディレクトリがあるとき、無視される", func(t *testing.T) {
 		t.Parallel()
 		root := t.TempDir()
 		testutil.WriteFiles(t, root, map[string]string{
@@ -228,7 +228,7 @@ func TestDiscoverSkills(t *testing.T) {
 		}
 	})
 
-	t.Run("returns empty for repo with no skills", func(t *testing.T) {
+	t.Run("スキルのないリポジトリのとき、空が返る", func(t *testing.T) {
 		t.Parallel()
 		root := t.TempDir()
 		testutil.WriteFiles(t, root, map[string]string{
@@ -245,7 +245,7 @@ func TestDiscoverSkills(t *testing.T) {
 		}
 	})
 
-	t.Run("when a skill holds another SKILL.md one level down, gh skill reads it as namespaced, so both are defaults", func(t *testing.T) {
+	t.Run("スキルの 1 階層下に別の SKILL.md があるとき、gh skill は名前空間付きとして読むので両方が既定になる", func(t *testing.T) {
 		t.Parallel()
 		// Arrange
 		root := t.TempDir()
@@ -266,7 +266,7 @@ func TestDiscoverSkills(t *testing.T) {
 		}
 	})
 
-	t.Run("hash includes all files in skill directory", func(t *testing.T) {
+	t.Run("スキルのディレクトリのハッシュは全ファイルを含めて計算される", func(t *testing.T) {
 		t.Parallel()
 		root := t.TempDir()
 		testutil.WriteFiles(t, root, map[string]string{
@@ -334,7 +334,7 @@ func TestComputeHashIsDeterministicAndContentSensitive(t *testing.T) {
 }
 
 func TestComputeHashMatchesVercel(t *testing.T) {
-	t.Run("when a skill holds mixed-case names, .git, node_modules and a symlink, the hash equals vercel-labs/skills' computedHash", func(t *testing.T) {
+	t.Run("スキルが大文字小文字混在の名前、.git、node_modules、シンボリックリンクを含むとき、ハッシュは vercel-labs/skills の computedHash と一致する", func(t *testing.T) {
 		// Arrange
 		dir := t.TempDir()
 		for name, content := range map[string]string{
@@ -365,7 +365,7 @@ func TestComputeHashMatchesVercel(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		// computeSkillFolderHash of vercel-labs/skills 1.7.1 over the same tree.
+		// 同じツリーに対する vercel-labs/skills 1.7.1 の computeSkillFolderHash
 		if want := "1e24b5bad76e4407e826d1f77a4fc083e12624207ac199d5a94efe24218e6959"; got != want {
 			t.Errorf("ComputeHash() = %s, want %s", got, want)
 		}

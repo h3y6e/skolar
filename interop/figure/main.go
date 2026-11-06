@@ -1,5 +1,4 @@
-// Command figure renders the output of the interop tests, read from stdin, as
-// the figures the README embeds.
+// Command figure は標準入力から読んだ interop テストの出力を README に埋め込む図として描画する
 //
 //	go test -tags interop -count 1 -json ./interop | go run ./interop/figure compat > docs/compat.svg
 //	go test -tags interop -run '^$' -bench . -benchtime 1x -count 5 ./interop | go run ./interop/figure bench > docs/bench.svg
@@ -38,12 +37,12 @@ func main() {
 
 func run(args []string, r io.Reader, w io.Writer) error {
 	if len(args) != 1 {
-		return errors.New("usage: figure compat|bench")
+		return errors.New("使い方: figure compat|bench")
 	}
 
 	f, ok := figures[args[0]]
 	if !ok {
-		return errors.New("usage: figure compat|bench")
+		return errors.New("使い方: figure compat|bench")
 	}
 
 	data, err := f.read(r)
@@ -96,7 +95,7 @@ func (v versions) line() (string, error) {
 	for _, tool := range []string{"skolar", "skills", "gh"} {
 		version, ok := v[tool]
 		if !ok {
-			return "", fmt.Errorf("no version of %s in the input", tool)
+			return "", fmt.Errorf("入力に %s のバージョンがありません", tool)
 		}
 
 		parts = append(parts, display(tool)+" "+version)

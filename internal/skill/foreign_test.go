@@ -38,7 +38,7 @@ func TestScanInstalledSkills(t *testing.T) {
 		Path:    "skills/creating-issues",
 	}
 
-	t.Run("when dir contains skills with github metadata, scanning returns them sorted by name", func(t *testing.T) {
+	t.Run("dir に github のメタデータを持つスキルがあるとき、走査は名前順に返す", func(t *testing.T) {
 		t.Parallel()
 
 		// Arrange
@@ -70,7 +70,7 @@ func TestScanInstalledSkills(t *testing.T) {
 		}
 	})
 
-	t.Run("when a SKILL.md has no source metadata, the skill is not returned", func(t *testing.T) {
+	t.Run("SKILL.md にソースのメタデータがないとき、そのスキルは返らない", func(t *testing.T) {
 		t.Parallel()
 
 		// Arrange
@@ -91,7 +91,7 @@ func TestScanInstalledSkills(t *testing.T) {
 		}
 	})
 
-	t.Run("when a SKILL.md has invalid frontmatter, the skill is skipped", func(t *testing.T) {
+	t.Run("SKILL.md のフロントマターが不正なとき、そのスキルはスキップされる", func(t *testing.T) {
 		t.Parallel()
 
 		// Arrange
@@ -113,7 +113,7 @@ func TestScanInstalledSkills(t *testing.T) {
 		}
 	})
 
-	t.Run("when dir does not exist, scanning returns no skills and no error", func(t *testing.T) {
+	t.Run("dir が存在しないとき、走査はスキルもエラーも返さない", func(t *testing.T) {
 		t.Parallel()
 
 		// Arrange
@@ -176,7 +176,7 @@ func TestCollectTrackedUpdateCandidates(t *testing.T) {
 		}
 	}
 
-	t.Run("when a root skill's upstream SKILL.md is malformed, the candidate fails instead of passing for removed", func(t *testing.T) {
+	t.Run("ルートのスキルの上流の SKILL.md が不正なとき、削除と誤認されず候補は失敗する", func(t *testing.T) {
 		t.Parallel()
 
 		// Arrange
@@ -194,7 +194,7 @@ func TestCollectTrackedUpdateCandidates(t *testing.T) {
 		}
 	})
 
-	t.Run("when the upstream skill directory is a symlink, the candidate fails instead of staging the link target", func(t *testing.T) {
+	t.Run("上流のスキルのディレクトリがシンボリックリンクのとき、リンク先をステージせず候補は失敗する", func(t *testing.T) {
 		t.Parallel()
 
 		// Arrange
@@ -226,7 +226,7 @@ func TestCollectTrackedUpdateCandidates(t *testing.T) {
 		}
 	})
 
-	t.Run("when the upstream tree SHA matches, the candidate is up-to-date", func(t *testing.T) {
+	t.Run("上流のツリー SHA が一致するとき、候補は最新になる", func(t *testing.T) {
 		t.Parallel()
 
 		// Arrange
@@ -257,7 +257,7 @@ func TestCollectTrackedUpdateCandidates(t *testing.T) {
 		}
 	})
 
-	t.Run("when the upstream tree SHA differs, the candidate is update-available with injected staged content", func(t *testing.T) {
+	t.Run("上流のツリー SHA が異なるとき、候補は更新ありになってメタデータを注入した内容がステージされる", func(t *testing.T) {
 		t.Parallel()
 
 		// Arrange
@@ -315,7 +315,7 @@ func TestCollectTrackedUpdateCandidates(t *testing.T) {
 		}
 	})
 
-	t.Run("when the upstream SKILL.md is a symlink outside the clone, staging metadata leaves the link target unchanged", func(t *testing.T) {
+	t.Run("上流の SKILL.md が clone の外へのシンボリックリンクのとき、メタデータのステージはリンク先を変更しない", func(t *testing.T) {
 		t.Parallel()
 
 		// Arrange
@@ -354,7 +354,7 @@ func TestCollectTrackedUpdateCandidates(t *testing.T) {
 		}
 	})
 
-	t.Run("when no upstream skill has the path or name, the candidate was removed upstream", func(t *testing.T) {
+	t.Run("パスも名前も一致する上流スキルがないとき、候補は上流で削除されたと判定される", func(t *testing.T) {
 		t.Parallel()
 
 		// Arrange
@@ -372,7 +372,7 @@ func TestCollectTrackedUpdateCandidates(t *testing.T) {
 		}
 	})
 
-	t.Run("when the skill moved upstream, the candidate is staged with its new path and other upstream skills are new", func(t *testing.T) {
+	t.Run("スキルが上流で移動したとき、候補は新しいパスでステージされてほかの上流スキルは新規になる", func(t *testing.T) {
 		t.Parallel()
 
 		// Arrange
@@ -403,7 +403,7 @@ func TestCollectTrackedUpdateCandidates(t *testing.T) {
 		}
 	})
 
-	t.Run("when a skill is pinned, the candidate reports pinned without fetching", func(t *testing.T) {
+	t.Run("スキルが固定されているとき、候補は取得せずに固定と報告する", func(t *testing.T) {
 		t.Parallel()
 
 		// Arrange
@@ -430,7 +430,7 @@ func TestCollectTrackedUpdateCandidates(t *testing.T) {
 		}
 	})
 
-	t.Run("when a skill is installed from a local path, the candidate reports local without fetching", func(t *testing.T) {
+	t.Run("スキルがローカルのパスからインストールされているとき、候補は取得せずにローカルと報告する", func(t *testing.T) {
 		t.Parallel()
 
 		// Arrange
@@ -460,7 +460,7 @@ func TestCollectTrackedUpdateCandidates(t *testing.T) {
 		}
 	})
 
-	t.Run("when a repository cannot be fetched, its skills are check-failed and other repos still resolve", func(t *testing.T) {
+	t.Run("リポジトリを取得できないとき、そのスキルは確認失敗になってほかのリポジトリは解決される", func(t *testing.T) {
 		t.Parallel()
 
 		// Arrange
@@ -503,7 +503,7 @@ func TestCollectTrackedUpdateCandidates(t *testing.T) {
 		}
 	})
 
-	t.Run("when one upstream skill has invalid frontmatter, only that skill is check-failed and its sibling stays update-available", func(t *testing.T) {
+	t.Run("上流の 1 つのスキルのフロントマターが不正なとき、そのスキルだけが確認失敗になって同じ階層のスキルは更新ありのままになる", func(t *testing.T) {
 		t.Parallel()
 
 		// Arrange
@@ -541,7 +541,7 @@ func TestCollectTrackedUpdateCandidates(t *testing.T) {
 		}
 	})
 
-	t.Run("when a skill has no github-path, the candidate is check-failed without fetching", func(t *testing.T) {
+	t.Run("スキルに github-path がないとき、候補は取得せずに確認失敗になる", func(t *testing.T) {
 		t.Parallel()
 
 		// Arrange
@@ -567,7 +567,7 @@ func TestCollectTrackedUpdateCandidates(t *testing.T) {
 		}
 	})
 
-	t.Run("when two skills share a repository, it is fetched once", func(t *testing.T) {
+	t.Run("2 つのスキルが同じリポジトリを共有するとき、リポジトリは 1 度だけ取得される", func(t *testing.T) {
 		t.Parallel()
 
 		// Arrange
@@ -615,7 +615,7 @@ func TestCollectTrackedUpdateCandidates(t *testing.T) {
 func TestPreferTrackedInstall(t *testing.T) {
 	t.Parallel()
 
-	t.Run("when no lockfile exists and the source is github, gh skill format is preferred", func(t *testing.T) {
+	t.Run("ロックファイルがなくソースが github のとき、gh skill 形式が優先される", func(t *testing.T) {
 		t.Parallel()
 
 		// Arrange
@@ -630,7 +630,7 @@ func TestPreferTrackedInstall(t *testing.T) {
 		}
 	})
 
-	t.Run("when a lockfile exists, lockfile format is kept even for github sources", func(t *testing.T) {
+	t.Run("ロックファイルがあるとき、github のソースでもロックファイル形式が保たれる", func(t *testing.T) {
 		t.Parallel()
 
 		// Arrange
@@ -645,7 +645,7 @@ func TestPreferTrackedInstall(t *testing.T) {
 		}
 	})
 
-	t.Run("when the source is not github, lockfile format is kept so updates can track it", func(t *testing.T) {
+	t.Run("ソースが github でないとき、更新を追跡できるようロックファイル形式が保たれる", func(t *testing.T) {
 		t.Parallel()
 
 		// Arrange
@@ -670,7 +670,7 @@ func TestFilterInstalledBySource(t *testing.T) {
 		{Name: "local", Meta: skill.SourceMetadata{LocalPath: "/home/user/skills/local"}},
 	}
 
-	t.Run("when source is empty, all skills are returned", func(t *testing.T) {
+	t.Run("ソースが空のとき、全スキルが返る", func(t *testing.T) {
 		t.Parallel()
 
 		// Act
@@ -685,7 +685,7 @@ func TestFilterInstalledBySource(t *testing.T) {
 		}
 	})
 
-	t.Run("when source is given, only skills from that repository are returned", func(t *testing.T) {
+	t.Run("ソースを指定したとき、そのリポジトリのスキルだけが返る", func(t *testing.T) {
 		t.Parallel()
 
 		// Act
@@ -700,7 +700,7 @@ func TestFilterInstalledBySource(t *testing.T) {
 		}
 	})
 
-	t.Run("when source has a ref, only skills pinned to that ref are returned", func(t *testing.T) {
+	t.Run("ソースに ref があるとき、その ref に固定されたスキルだけが返る", func(t *testing.T) {
 		t.Parallel()
 
 		// Act
@@ -715,7 +715,7 @@ func TestFilterInstalledBySource(t *testing.T) {
 		}
 	})
 
-	t.Run("when the metadata repository is not on github.com, it does not match a source", func(t *testing.T) {
+	t.Run("メタデータのリポジトリが github.com にないとき、ソースに一致しない", func(t *testing.T) {
 		t.Parallel()
 
 		// Arrange
@@ -735,7 +735,7 @@ func TestFilterInstalledBySource(t *testing.T) {
 		}
 	})
 
-	t.Run("when source is invalid, an error is returned", func(t *testing.T) {
+	t.Run("ソースが不正なとき、エラーが返る", func(t *testing.T) {
 		t.Parallel()
 
 		// Act
@@ -751,7 +751,7 @@ func TestFilterInstalledBySource(t *testing.T) {
 func TestUnmanagedSkills(t *testing.T) {
 	t.Parallel()
 
-	t.Run("when a skill is present in the lockfile, it is excluded from unmanaged skills", func(t *testing.T) {
+	t.Run("スキルがロックファイルにあるとき、管理外のスキルから除かれる", func(t *testing.T) {
 		t.Parallel()
 
 		// Arrange

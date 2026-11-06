@@ -25,19 +25,19 @@ func newAddCmd() *cobra.Command {
 
 	c := &cobra.Command{
 		Use:   "add <source>",
-		Short: "Add skills from a source repository (destructive when overwriting)",
-		Long: `Add skills from a source repository (destructive when overwriting).
+		Short: "ソースリポジトリからスキルを追加する (上書き時は破壊的)",
+		Long: `ソースリポジトリからスキルを追加する (上書き時は破壊的)
 
-Without --skill, installs the skills vercel-labs/skills or gh skill finds by default; --skill reaches any directory with a SKILL.md.`,
+--skill を指定しない場合はソースの既定のスキルをインストールする。--skill を指定すると SKILL.md を持つ任意のディレクトリを対象にできる`,
 		Args: usageArgs(cobra.ExactArgs(1)),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return runAdd(cmd, args[0], opts)
 		},
 	}
 
-	c.Flags().BoolVar(&opts.dryRun, "dry-run", false, "Show the skills that would be installed without installing")
-	c.Flags().BoolVarP(&opts.yes, "yes", "y", false, "Overwrite existing skills without confirmation")
-	bindSkillFlag(c, &opts.skills, "Install only these skills")
+	c.Flags().BoolVar(&opts.dryRun, "dry-run", false, "インストールされるスキルを表示するだけでインストールしない")
+	c.Flags().BoolVarP(&opts.yes, "yes", "y", false, "既存のスキルを確認なしで上書きする")
+	bindSkillFlag(c, &opts.skills, "これらのスキルだけをインストールする")
 	bindDirFlag(c, &opts.dir)
 
 	return c
@@ -61,7 +61,7 @@ func runAdd(cmd *cobra.Command, source string, opts addOptions) error {
 	defer func() { _ = cache.Close() }()
 
 	show := status(cmd.ErrOrStderr())
-	show("fetching " + ref.CanonicalSource)
+	show("取得中: " + ref.CanonicalSource)
 	snap, err := fetchSource(ctx, cache, ref, tracked)
 
 	show("")
@@ -72,12 +72,12 @@ func runAdd(cmd *cobra.Command, source string, opts addOptions) error {
 
 	discovered, err := skill.DiscoverSkills(snap.FS)
 	if err != nil {
-		return fmt.Errorf("discover skills: %w", err)
+		return fmt.Errorf("スキルの探索: %w", err)
 	}
 
 	discovered = skill.FilterDiscoveredSkills(discovered, opts.skills)
 	if len(discovered) == 0 {
-		return errors.New("no skills found to install")
+		return errors.New("インストールするスキルが見つかりません")
 	}
 
 	overwrite := printInstallPlan(cmd.OutOrStdout(), layout, discovered)
@@ -87,7 +87,7 @@ func runAdd(cmd *cobra.Command, source string, opts addOptions) error {
 	}
 
 	if overwrite {
-		if err := approve(cmd, opts.yes, "Overwrite existing skills?"); err != nil {
+		if err := approve(cmd, opts.yes, "既存のスキルを上書きしますか?"); err != nil {
 			return err
 		}
 	}
@@ -99,8 +99,6 @@ func runAdd(cmd *cobra.Command, source string, opts addOptions) error {
 	return skill.InstallSkills(discovered, ref, layout)
 }
 
-// fetchSource fetches ref.Ref, or else, in gh skill format, the latest
-// release, as gh skill install does, and the default branch otherwise.
 func fetchSource(ctx context.Context, cache *git.Cache, ref skill.SourceRef, tracked bool) (git.Snapshot, error) {
 	resolve := git.ResolveDefault
 	if tracked {
@@ -109,15 +107,15 @@ func fetchSource(ctx context.Context, cache *git.Cache, ref skill.SourceRef, tra
 
 	resolved, err := resolve(ctx, ref.CloneURL, ref.Ref)
 	if err != nil {
-		return git.Snapshot{}, fmt.Errorf("resolve ref for %s: %w", ref.CanonicalSource, err)
+		return git.Snapshot{}, fmt.Errorf("%s の ref の解決: %w", ref.CanonicalSource, err)
 	}
 
-	// The lockfile records the hash of files as vercel-labs/skills clones
-	// them; gh skill metadata records git trees, read as stored.
+	// ロックファイルには vercel-labs/skills が clone したとおりのファイルのハッシュを記録し、
+	// gh skill のメタデータには git ツリーを保存されたまま読んで記録する
 	if !tracked {
 		fsys, err := cache.Checkout(ctx, ref.CloneURL, resolved)
 		if err != nil {
-			return git.Snapshot{}, fmt.Errorf("fetch %s: %w", ref.CanonicalSource, err)
+			return git.Snapshot{}, fmt.Errorf("%s の取得: %w", ref.CanonicalSource, err)
 		}
 
 		return git.Snapshot{Ref: resolved, FS: fsys}, nil
@@ -125,7 +123,7 @@ func fetchSource(ctx context.Context, cache *git.Cache, ref skill.SourceRef, tra
 
 	snap, err := cache.Fetch(ctx, ref.CloneURL, resolved)
 	if err != nil {
-		return git.Snapshot{}, fmt.Errorf("fetch %s: %w", ref.CanonicalSource, err)
+		return git.Snapshot{}, fmt.Errorf("%s の取得: %w", ref.CanonicalSource, err)
 	}
 
 	return snap, nil
@@ -145,7 +143,7 @@ func installsTracked(layout lock.Layout, ref skill.SourceRef) (bool, error) {
 
 	tracked := skill.PreferTrackedInstall(lockfileExists, ref.SourceType)
 	if !tracked && !layout.UsesLockfile() {
-		return false, fmt.Errorf("%s sources can't be added to %q: skills-lock.json records only %s", ref.SourceType, layout.Dir, lock.DefaultDir)
+		return false, fmt.Errorf("%s のソースは %q に追加できません: skills-lock.json に記録できるのは %s のみです", ref.SourceType, layout.Dir, lock.DefaultDir)
 	}
 
 	return tracked, nil
@@ -155,9 +153,9 @@ func printInstallPlan(w io.Writer, layout lock.Layout, skills []skill.Discovered
 	overwrite := false
 
 	for _, s := range skills {
-		action := "install"
+		action := "インストール"
 		if _, err := os.Stat(layout.SkillDir(s.Name)); err == nil {
-			action = "overwrite"
+			action = "上書き"
 			overwrite = true
 		}
 

@@ -1,4 +1,4 @@
-// Package testutil builds git repository fixtures for tests.
+// Package testutil はテスト用の git リポジトリのフィクスチャを作る
 package testutil
 
 import (
@@ -10,8 +10,8 @@ import (
 	"testing"
 )
 
-// Main runs a package's tests with git isolated from the user's config and
-// skolar's cache from the user's.
+// Main は git の設定と skolar のキャッシュをユーザーのものから切り離して
+// パッケージのテストを実行する
 func Main(m *testing.M) {
 	home, err := os.MkdirTemp("", "skolar-test-home-*")
 	if err != nil {
@@ -36,8 +36,8 @@ func Main(m *testing.M) {
 	os.Exit(code)
 }
 
-// Git runs git in dir, isolated from the user and system config, and
-// returns its output.
+// Git はユーザー設定とシステム設定から分離して dir で git を実行し、
+// その出力を返す
 func Git(tb testing.TB, dir string, args ...string) string {
 	tb.Helper()
 
@@ -51,13 +51,13 @@ func Git(tb testing.TB, dir string, args ...string) string {
 
 	out, err := cmd.CombinedOutput()
 	if err != nil {
-		tb.Fatalf("git %v failed: %v\n%s", args, err, out)
+		tb.Fatalf("git %v が失敗しました: %v\n%s", args, err, out)
 	}
 
 	return string(out)
 }
 
-// WriteFiles writes files, keyed by slash-separated path, under base.
+// WriteFiles はスラッシュ区切りのパスをキーとする files を base の下に書き込む
 func WriteFiles(tb testing.TB, base string, files map[string]string) {
 	tb.Helper()
 
@@ -73,7 +73,7 @@ func WriteFiles(tb testing.TB, base string, files map[string]string) {
 	}
 }
 
-// InitWorkRepo creates a repository on main with a commit identity.
+// InitWorkRepo はコミットの作者情報を設定した main ブランチのリポジトリを作る
 func InitWorkRepo(tb testing.TB) string {
 	tb.Helper()
 
@@ -85,7 +85,7 @@ func InitWorkRepo(tb testing.TB) string {
 	return work
 }
 
-// Commit writes files into work and commits everything.
+// Commit は files を work に書き込んですべてをコミットする
 func Commit(tb testing.TB, work, msg string, files map[string]string) {
 	tb.Helper()
 
@@ -94,7 +94,7 @@ func Commit(tb testing.TB, work, msg string, files map[string]string) {
 	Git(tb, work, "commit", "-m", msg)
 }
 
-// BareClone returns a file:// URL of a bare clone of work.
+// BareClone は work の bare clone の file:// URL を返す
 func BareClone(tb testing.TB, work string) string {
 	tb.Helper()
 
@@ -104,8 +104,8 @@ func BareClone(tb testing.TB, work string) string {
 	return "file://" + bare
 }
 
-// BareRepo returns a file:// URL of a bare repo with two commits (an empty
-// base, then files) so shallow clones behave realistically.
+// BareRepo は空のベースと files の二つのコミットを持つベアリポジトリの
+// file:// URL を返す。履歴があるので shallow clone が実際のリポジトリと同じように振る舞う
 func BareRepo(tb testing.TB, files map[string]string) string {
 	tb.Helper()
 
@@ -116,9 +116,9 @@ func BareRepo(tb testing.TB, files map[string]string) string {
 	return BareClone(tb, work)
 }
 
-// SkillRepo returns a file:// URL of a bare repo shaped like a large skill
-// collection: skills under skills/<group>/<name>, each with a SKILL.md and
-// files reference files.
+// SkillRepo は大規模なスキル集のような形のベアリポジトリの file:// URL を返す。
+// スキルは skills/<group>/<name> の下に置かれ、それぞれ SKILL.md と
+// files 個の参照ファイルを持つ
 func SkillRepo(tb testing.TB, skills, files int) string {
 	tb.Helper()
 

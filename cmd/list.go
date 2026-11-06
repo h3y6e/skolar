@@ -34,7 +34,7 @@ func newListCmd() *cobra.Command {
 		Use:         "list",
 		Aliases:     []string{"ls"},
 		Annotations: map[string]string{recordKey: "skills"},
-		Short:       "List installed skills",
+		Short:       "インストール済みのスキルを一覧表示する",
 		Args:        usageArgs(cobra.NoArgs),
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			return runList(cmd, opts)
@@ -42,7 +42,7 @@ func newListCmd() *cobra.Command {
 	}
 
 	bindDirFlag(c, &opts.dir)
-	c.Flags().BoolVar(&opts.json, "json", false, "Output results in JSON format")
+	c.Flags().BoolVar(&opts.json, "json", false, "結果を JSON 形式で出力する")
 
 	return c
 }
@@ -92,7 +92,7 @@ func runList(cmd *cobra.Command, opts listOptions) (err error) {
 	}
 
 	if len(payload) == 0 {
-		fmt.Fprintln(cmd.ErrOrStderr(), "no installed skills")
+		fmt.Fprintln(cmd.ErrOrStderr(), "インストール済みのスキルがありません")
 		return nil
 	}
 

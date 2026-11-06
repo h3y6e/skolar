@@ -10,7 +10,7 @@ import (
 func TestParseSourceMetadata(t *testing.T) {
 	t.Parallel()
 
-	t.Run("when SKILL.md has github metadata, parsing returns the source metadata", func(t *testing.T) {
+	t.Run("SKILL.md に github のメタデータがあるとき、解析はソースのメタデータを返す", func(t *testing.T) {
 		t.Parallel()
 
 		// Arrange
@@ -64,7 +64,7 @@ func TestParseSourceMetadata(t *testing.T) {
 		}
 	})
 
-	t.Run("when SKILL.md has pinned github metadata, parsing returns the pinned version", func(t *testing.T) {
+	t.Run("SKILL.md に固定された github のメタデータがあるとき、解析は固定されたバージョンを返す", func(t *testing.T) {
 		t.Parallel()
 
 		// Arrange
@@ -91,7 +91,7 @@ func TestParseSourceMetadata(t *testing.T) {
 		}
 	})
 
-	t.Run("when SKILL.md has no frontmatter, parsing returns empty metadata", func(t *testing.T) {
+	t.Run("SKILL.md にフロントマターがないとき、解析は空のメタデータを返す", func(t *testing.T) {
 		t.Parallel()
 
 		// Arrange
@@ -109,7 +109,7 @@ func TestParseSourceMetadata(t *testing.T) {
 		}
 	})
 
-	t.Run("when SKILL.md has frontmatter without metadata, parsing returns empty metadata", func(t *testing.T) {
+	t.Run("SKILL.md のフロントマターにメタデータがないとき、解析は空のメタデータを返す", func(t *testing.T) {
 		t.Parallel()
 
 		// Arrange
@@ -127,7 +127,7 @@ func TestParseSourceMetadata(t *testing.T) {
 		}
 	})
 
-	t.Run("when SKILL.md has local-path metadata, parsing reports a local source", func(t *testing.T) {
+	t.Run("SKILL.md に local-path のメタデータがあるとき、解析はローカルのソースと報告する", func(t *testing.T) {
 		t.Parallel()
 
 		// Arrange
@@ -158,7 +158,7 @@ func TestParseSourceMetadata(t *testing.T) {
 		}
 	})
 
-	t.Run("when frontmatter YAML is invalid, parsing returns an error", func(t *testing.T) {
+	t.Run("フロントマターの YAML が不正なとき、解析はエラーを返す", func(t *testing.T) {
 		t.Parallel()
 
 		// Arrange
@@ -184,7 +184,7 @@ func TestInjectSourceMetadata(t *testing.T) {
 		Path:    "skills/creating-issues",
 	}
 
-	t.Run("when injecting into SKILL.md without frontmatter, a frontmatter block is created", func(t *testing.T) {
+	t.Run("フロントマターのない SKILL.md に注入するとき、フロントマターのブロックが作られる", func(t *testing.T) {
 		t.Parallel()
 
 		// Arrange
@@ -210,7 +210,7 @@ func TestInjectSourceMetadata(t *testing.T) {
 		}
 	})
 
-	t.Run("when injecting github metadata, existing frontmatter keys and body are preserved", func(t *testing.T) {
+	t.Run("github のメタデータを注入するとき、既存のフロントマターのキーと本文は保たれる", func(t *testing.T) {
 		t.Parallel()
 
 		// Arrange
@@ -252,7 +252,7 @@ func TestInjectSourceMetadata(t *testing.T) {
 		}
 	})
 
-	t.Run("when injecting with a pinned version, github-pinned is set", func(t *testing.T) {
+	t.Run("固定バージョン付きで注入するとき、github-pinned が設定される", func(t *testing.T) {
 		t.Parallel()
 
 		// Arrange
@@ -271,7 +271,7 @@ func TestInjectSourceMetadata(t *testing.T) {
 		}
 	})
 
-	t.Run("when injecting unpinned over pinned metadata, github-pinned is removed", func(t *testing.T) {
+	t.Run("固定のメタデータに固定なしで注入するとき、github-pinned は削除される", func(t *testing.T) {
 		t.Parallel()
 
 		// Arrange
@@ -295,7 +295,7 @@ func TestInjectSourceMetadata(t *testing.T) {
 		}
 	})
 
-	t.Run("when injecting local metadata, github keys are removed and local-path is set", func(t *testing.T) {
+	t.Run("ローカルのメタデータを注入するとき、github のキーは削除され local-path が設定される", func(t *testing.T) {
 		t.Parallel()
 
 		// Arrange
@@ -330,7 +330,7 @@ func TestInjectSourceMetadata(t *testing.T) {
 		}
 	})
 
-	t.Run("when parsing injected content, the same metadata is returned", func(t *testing.T) {
+	t.Run("注入した内容を解析するとき、同じメタデータが返る", func(t *testing.T) {
 		t.Parallel()
 
 		// Arrange

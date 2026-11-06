@@ -12,7 +12,7 @@ import (
 func TestVerifyTrackedRootSkill(t *testing.T) {
 	t.Parallel()
 
-	t.Run("when a root skill and a skill inside it come from one clone, both verify", func(t *testing.T) {
+	t.Run("ルートのスキルとその内側のスキルが 1 回の clone に由来するとき、両方が検証される", func(t *testing.T) {
 		t.Parallel()
 		// Arrange
 		repo := initGitRepo(t, map[string]string{

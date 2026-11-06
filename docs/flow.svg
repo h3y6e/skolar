@@ -1,10 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" viewBox="0 0 900 536" width="900" height="536" role="img" aria-labelledby="t d">
-  <title id="t">skolar reads and writes both the vercel-labs/skills lockfile and gh skill metadata</title>
-  <desc id="d">skolar sits between vercel-labs/skills and gh skill. add writes skills-lock.json or SKILL.md frontmatter, recording each skill in its SKILL.md metadata in any directory, or in an existing skills-lock.json and using the lockfile for skills gh can't express. update locates each skill upstream by its recorded path, follows it when it moved, and compares hashes; verify checks files on disk against computedHash or github-tree-sha. Both upstream tools keep working on the same records.</desc>
+  <title id="t">skolar は vercel-labs/skills のロックファイルと gh skill のメタデータの両方を読み書きする</title>
+  <desc id="d">skolar は vercel-labs/skills と gh skill のどちらの記録も扱う。add は skills-lock.json か SKILL.md のフロントマターに書き込む。任意のディレクトリでは各スキルを SKILL.md のメタデータに記録し、既存の skills-lock.json があるときや gh では表現できないスキルにはロックファイルを使う。update は記録されたパスで各スキルを上流から探し、移動していれば追跡してハッシュを比較する。verify はディスク上のファイルを computedHash または github-tree-sha と照合する。vercel-labs/skills と gh skill は同じ記録をそのまま使い続けられる</desc>
   <defs><filter id="blur" x="-20%" y="-20%" width="140%" height="160%"><feGaussianBlur stdDeviation="7"/></filter></defs>
   <style>
-    text { white-space: pre; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif; font-size: 13px; fill: #57575a; }
-    .mono, .corner { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+    text { white-space: pre; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, "Hiragino Sans", "Noto Sans JP", "Yu Gothic", Meiryo, sans-serif; font-size: 13px; fill: #57575a; }
+    .mono, .corner { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace, "Hiragino Sans", "Noto Sans JP", "Yu Gothic", Meiryo; }
     .mono { font-size: 11.5px; }
     .corner { font-size: 10.5px; letter-spacing: .1em; fill: #8c8c90; }
     .fig, .readout { letter-spacing: .04em; fill: #57575a; }
@@ -66,7 +66,7 @@
   <path class="wire own" d="M 450 100 V 133"/><circle class="end" cx="450" cy="100" r="2.2"/><circle class="end" cx="450" cy="133" r="2.2"/>
   <path class="wire own" d="M 390 251 L 322 310"/><circle class="end" cx="390" cy="251" r="2.2"/><circle class="end" cx="322" cy="310" r="2.2"/>
   <path class="wire own" d="M 510 251 L 578 310"/><circle class="end" cx="510" cy="251" r="2.2"/><circle class="end" cx="578" cy="310" r="2.2"/>
-  <text class="corner readout idle" x="880" y="520" text-anchor="end">skolar reads and writes both records</text>
+  <text class="corner readout idle" x="880" y="520" text-anchor="end">skolar は両方の記録を読み書きする</text>
   <g class="step" style="animation-delay: 0s">
     <rect class="band" x="272" y="173" width="356" height="22" rx="2"/>
     <rect class="band" x="287" y="66" width="62" height="16" rx="2"/>
@@ -79,7 +79,7 @@
     <rect class="band" x="30" y="432" width="366" height="16" rx="2"/>
     <path class="flow" d="M 450 100 V 133"/><circle class="litend" cx="450" cy="100" r="2.2"/><circle class="litend" cx="450" cy="133" r="2.2"/>
     <path class="flow" d="M 390 251 L 322 310"/><circle class="litend" cx="390" cy="251" r="2.2"/><circle class="litend" cx="322" cy="310" r="2.2"/>
-    <text class="corner readout" x="880" y="520" text-anchor="end">add · records in skills-lock.json when it exists</text>
+    <text class="corner readout" x="880" y="520" text-anchor="end">add · skills-lock.json があればそこに記録する</text>
   </g>
   <g class="step" style="animation-delay: 3.5s">
     <rect class="band" x="272" y="173" width="356" height="22" rx="2"/>
@@ -92,7 +92,7 @@
     <rect class="band" x="438" y="416" width="434" height="16" rx="2"/>
     <path class="flow" d="M 450 100 V 133"/><circle class="litend" cx="450" cy="100" r="2.2"/><circle class="litend" cx="450" cy="133" r="2.2"/>
     <path class="flow" d="M 510 251 L 578 310"/><circle class="litend" cx="510" cy="251" r="2.2"/><circle class="litend" cx="578" cy="310" r="2.2"/>
-    <text class="corner readout" x="880" y="520" text-anchor="end">add · records in SKILL.md metadata in any directory</text>
+    <text class="corner readout" x="880" y="520" text-anchor="end">add · 任意のディレクトリの SKILL.md メタデータに記録する</text>
   </g>
   <g class="step" style="animation-delay: 7s">
     <rect class="band" x="272" y="195" width="356" height="22" rx="2"/>
@@ -106,7 +106,7 @@
     <path class="flow" d="M 450 100 V 133"/><circle class="litend" cx="450" cy="100" r="2.2"/><circle class="litend" cx="450" cy="133" r="2.2"/>
     <path class="flow" d="M 390 251 L 322 310"/><circle class="litend" cx="390" cy="251" r="2.2"/><circle class="litend" cx="322" cy="310" r="2.2"/>
     <path class="flow" d="M 510 251 L 578 310"/><circle class="litend" cx="510" cy="251" r="2.2"/><circle class="litend" cx="578" cy="310" r="2.2"/>
-    <text class="corner readout" x="880" y="520" text-anchor="end">update · follows skillPath / github-path, compares hashes</text>
+    <text class="corner readout" x="880" y="520" text-anchor="end">update · skillPath / github-path をたどり、ハッシュを比較する</text>
   </g>
   <g class="step" style="animation-delay: 10.5s">
     <rect class="band" x="272" y="217" width="356" height="22" rx="2"/>
@@ -114,7 +114,7 @@
     <rect class="band" x="438" y="416" width="434" height="16" rx="2"/>
     <path class="flow" d="M 390 251 L 322 310"/><circle class="litend" cx="390" cy="251" r="2.2"/><circle class="litend" cx="322" cy="310" r="2.2"/>
     <path class="flow" d="M 510 251 L 578 310"/><circle class="litend" cx="510" cy="251" r="2.2"/><circle class="litend" cx="578" cy="310" r="2.2"/>
-    <text class="corner readout" x="880" y="520" text-anchor="end">verify · checks files against computedHash / github-tree-sha</text>
+    <text class="corner readout" x="880" y="520" text-anchor="end">verify · ファイルを computedHash / github-tree-sha と照合する</text>
   </g>
   <g class="step" style="animation-delay: 14s">
     <rect class="litedge" x="16" y="154" width="200" height="76" rx="6"/>
@@ -123,7 +123,7 @@
     <rect class="litedge" x="424" y="312" width="460" height="152" rx="6"/>
     <path class="flow" d="M 116 232 V 310"/><circle class="litend" cx="116" cy="232" r="2.2"/><circle class="litend" cx="116" cy="310" r="2.2"/>
     <path class="flow" d="M 784 232 V 310"/><circle class="litend" cx="784" cy="232" r="2.2"/><circle class="litend" cx="784" cy="310" r="2.2"/>
-    <text class="corner readout" x="880" y="520" text-anchor="end">skills and gh skill read the same records</text>
+    <text class="corner readout" x="880" y="520" text-anchor="end">skills と gh skill は同じ記録を読む</text>
   </g>
   <text class="h mono" x="290" y="52">h3y6e/skills</text>
   <text class="mono muted" x="540" y="52">main</text>
@@ -136,9 +136,9 @@
   <text class="h mono" x="702" y="184">gh skill</text>
   <text class="muted" x="702" y="206">cli/cli</text>
   <text class="h mono" x="280" y="163">skolar</text>
-  <text x="280" y="188"><tspan class="cmd mono">add</tspan><tspan x="344">records in SKILL.md, or an existing lockfile</tspan></text>
-  <text x="280" y="210"><tspan class="cmd mono">update</tspan><tspan x="344">finds each skill by its recorded path</tspan></text>
-  <text x="280" y="232"><tspan class="cmd mono">verify</tspan><tspan x="344">checks files on disk against the record</tspan></text>
+  <text x="280" y="188"><tspan class="cmd mono">add</tspan><tspan x="344">SKILL.md か既存のロックファイルに記録する</tspan></text>
+  <text x="280" y="210"><tspan class="cmd mono">update</tspan><tspan x="344">記録されたパスでスキルを探す</tspan></text>
+  <text x="280" y="232"><tspan class="cmd mono">verify</tspan><tspan x="344">ディスク上のファイルを記録と照合する</tspan></text>
   <text class="h mono" x="34" y="340">skills-lock.json</text><text class="mono muted" x="390" y="340" text-anchor="end">.agents/skills</text>
   <text class="mono" x="34" y="364">"root-skill": {</text>
   <text class="mono" x="34" y="380">  "source": "h3y6e/skills",</text>
@@ -146,7 +146,7 @@
   <text class="mono" x="34" y="412">  "skillPath": "SKILL.md",</text>
   <text class="mono" x="34" y="428">  "computedHash": "&lt;sha256&gt;"</text>
   <text class="mono" x="34" y="444">}</text>
-  <text class="h mono" x="442" y="340">alpha/SKILL.md</text><text class="mono muted" x="866" y="340" text-anchor="end">any directory</text>
+  <text class="h mono" x="442" y="340">alpha/SKILL.md</text><text class="mono muted" x="866" y="340" text-anchor="end">任意のディレクトリ</text>
   <text class="mono" x="442" y="364">metadata:</text>
   <text class="mono" x="442" y="380">  github-repo: https://github.com/h3y6e/skills</text>
   <text class="mono" x="442" y="396">  github-path: skills/alpha</text>

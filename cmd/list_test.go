@@ -18,7 +18,7 @@ func TestListFlags(t *testing.T) {
 	root := cmd.NewRootCmd("test")
 	listCmd, _, _ := root.Find([]string{"list"})
 
-	t.Run("--json flag is registered", func(t *testing.T) {
+	t.Run("--json フラグが登録されている", func(t *testing.T) {
 		t.Parallel()
 
 		flag := listCmd.Flags().Lookup("json")
@@ -27,7 +27,7 @@ func TestListFlags(t *testing.T) {
 		}
 	})
 
-	t.Run("when the directory is custom, list shows none of the lockfile's skills", func(t *testing.T) {
+	t.Run("カスタムディレクトリのとき、一覧表示はロックファイルのスキルを表示しない", func(t *testing.T) {
 		t.Parallel()
 
 		rootDir := t.TempDir()
@@ -76,7 +76,7 @@ func TestListFlags(t *testing.T) {
 
 func TestListIgnoresUnrelatedLockfile(t *testing.T) {
 	t.Parallel()
-	t.Run("when the directory is custom, list ignores a malformed skills-lock.json", func(t *testing.T) {
+	t.Run("カスタムディレクトリのとき、一覧表示は不正な skills-lock.json を無視する", func(t *testing.T) {
 		t.Parallel()
 		// Arrange
 		base := t.TempDir()
@@ -106,7 +106,6 @@ func TestListAlias(t *testing.T) {
 
 	skillsDir := filepath.Join(t.TempDir(), ".agents", "skills")
 
-	// Install.
 	root1 := cmd.NewRootCmd("test")
 	root1.SetArgs([]string{"add", "-d", skillsDir, bareURL})
 
@@ -114,7 +113,6 @@ func TestListAlias(t *testing.T) {
 		t.Fatalf("add error: %v", err)
 	}
 
-	// Use ls alias.
 	var out bytes.Buffer
 
 	root2 := cmd.NewRootCmd("test")
@@ -134,7 +132,7 @@ func TestListAlias(t *testing.T) {
 func TestListHuman(t *testing.T) {
 	t.Parallel()
 
-	t.Run("lists installed skills", func(t *testing.T) {
+	t.Run("スキルがインストール済みのとき、一覧表示する", func(t *testing.T) {
 		t.Parallel()
 
 		bareURL := testutil.BareRepo(t, map[string]string{
@@ -171,7 +169,7 @@ func TestListHuman(t *testing.T) {
 		}
 	})
 
-	t.Run("empty lockfile shows no skills message", func(t *testing.T) {
+	t.Run("ロックファイルが空のとき、スキルなしのメッセージを表示する", func(t *testing.T) {
 		t.Parallel()
 
 		skillsDir := filepath.Join(t.TempDir(), ".agents", "skills")
@@ -192,15 +190,15 @@ func TestListHuman(t *testing.T) {
 		}
 
 		got := out.String()
-		if !strings.Contains(got, "no") {
+		if !strings.Contains(got, "インストール済みのスキルがありません") {
 			t.Errorf("expected 'no ...' message for empty lockfile, got: %q", got)
 		}
 	})
 
-	t.Run("reports no installed skills when lockfile is missing", func(t *testing.T) {
+	t.Run("ロックファイルがないとき、インストール済みのスキルなしと報告する", func(t *testing.T) {
 		t.Parallel()
 
-		// Arrange: gh-managed destinations have no lockfile at all.
+		// Arrange
 		skillsDir := filepath.Join(t.TempDir(), ".agents", "skills")
 
 		// Act
@@ -215,8 +213,8 @@ func TestListHuman(t *testing.T) {
 			t.Fatalf("list: %v", err)
 		}
 
-		if !strings.Contains(out.String(), "no installed skills") {
-			t.Errorf("output = %q, want %q", out.String(), "no installed skills")
+		if !strings.Contains(out.String(), "インストール済みのスキルがありません") {
+			t.Errorf("output = %q, want %q", out.String(), "インストール済みのスキルがありません")
 		}
 	})
 }
@@ -258,7 +256,6 @@ func TestListJSON(t *testing.T) {
 		t.Errorf("skillName = %v, want alpha", r["skillName"])
 	}
 
-	// Must have required fields.
 	for _, field := range []string{"skillName", "source", "sourceType", "computedHash"} {
 		if _, ok := r[field]; !ok {
 			t.Errorf("missing required JSON field %q", field)

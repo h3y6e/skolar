@@ -64,7 +64,7 @@ func TestVerifyLockfile(t *testing.T) {
 	t.Parallel()
 	bareURL := testutil.BareRepo(t, map[string]string{"skills/alpha/SKILL.md": "# Alpha\n"})
 
-	t.Run("when a lockfile skill is untouched, verify reports it verified", func(t *testing.T) {
+	t.Run("ロックファイルのスキルが未変更のとき、検証は検証済みと報告する", func(t *testing.T) {
 		t.Parallel()
 		// Arrange
 		dir := filepath.Join(t.TempDir(), ".agents", "skills")
@@ -82,7 +82,7 @@ func TestVerifyLockfile(t *testing.T) {
 		}
 	})
 
-	t.Run("when a lockfile skill's file changed, verify reports it modified and fails with verify_failed", func(t *testing.T) {
+	t.Run("ロックファイルのスキルのファイルが変更されたとき、検証は変更ありと報告し verify_failed で失敗する", func(t *testing.T) {
 		t.Parallel()
 		// Arrange
 		dir := filepath.Join(t.TempDir(), ".agents", "skills")
@@ -107,11 +107,10 @@ func TestVerifyLockfile(t *testing.T) {
 }
 
 func TestVerifyGhMetadata(t *testing.T) {
-	// Not parallel: stubs the GitHub transport.
 	bareURL := initBareRepoWithTwoTags(t)
 	stubGitHubTransport(t, "h3y6e/fixture", bareURL)
 
-	t.Run("when a gh-format skill is untouched, verify reports it verified", func(t *testing.T) {
+	t.Run("gh 形式のスキルが未変更のとき、検証は検証済みと報告する", func(t *testing.T) {
 		// Arrange
 		dir := filepath.Join(t.TempDir(), "skills")
 		addSkills(t, "-s", "alpha", "-d", dir, "h3y6e/fixture")
@@ -128,7 +127,7 @@ func TestVerifyGhMetadata(t *testing.T) {
 		}
 	})
 
-	t.Run("when a gh-format skill gained and changed files, verify lists them as modified", func(t *testing.T) {
+	t.Run("gh 形式のスキルでファイルが追加・変更されたとき、検証は変更ありとして列挙する", func(t *testing.T) {
 		// Arrange
 		dir := filepath.Join(t.TempDir(), "skills")
 		addSkills(t, "-s", "alpha", "-d", dir, "h3y6e/fixture")
@@ -160,7 +159,7 @@ func TestVerifyGhMetadata(t *testing.T) {
 		}
 	})
 
-	t.Run("when the recorded tree no longer matches its ref, verify reports the skill unverifiable", func(t *testing.T) {
+	t.Run("記録されたツリーが ref と一致しなくなったとき、検証はスキルを検証不能と報告する", func(t *testing.T) {
 		// Arrange
 		dir := filepath.Join(t.TempDir(), "skills")
 		addSkills(t, "-s", "alpha", "-d", dir, "h3y6e/fixture")
@@ -207,7 +206,7 @@ func metadataLine(t *testing.T, skillMD, key string) string {
 func TestVerifyCoverage(t *testing.T) {
 	t.Parallel()
 
-	t.Run("when a skill directory has invalid frontmatter and no lockfile entry, verify reports it unverifiable and fails", func(t *testing.T) {
+	t.Run("スキルのディレクトリのフロントマターが不正でロックファイルにもエントリがないとき、検証は検証不能と報告して失敗する", func(t *testing.T) {
 		t.Parallel()
 		// Arrange
 		dir := filepath.Join(t.TempDir(), "skills")
@@ -234,8 +233,7 @@ func TestVerifyCoverage(t *testing.T) {
 }
 
 func TestVerifySkillFilter(t *testing.T) {
-	// Not parallel: replaces NewUpstreamFuncs.
-	t.Run("when -s selects a lockfile skill, verify fetches no gh-format skill", func(t *testing.T) {
+	t.Run("-s でロックファイルのスキルを選んだとき、検証は gh 形式のスキルを取得しない", func(t *testing.T) {
 		// Arrange
 		bareURL := initBareRepoWithTwoTags(t)
 		stubGitHubTransport(t, "h3y6e/fixture", bareURL)
@@ -270,15 +268,14 @@ func TestVerifySkillFilter(t *testing.T) {
 		err := root.Execute()
 
 		// Assert
-		if err != nil || out.String() != "alpha: verified\n" {
+		if err != nil || out.String() != "alpha: 検証済み\n" {
 			t.Errorf("verify = %v, %q, want alpha verified", err, out.String())
 		}
 	})
 }
 
 func TestVerifyFix(t *testing.T) {
-	// Not parallel: stubs the GitHub transport.
-	t.Run("when a pinned gh-format skill is modified, the fix reinstalls it at its pin", func(t *testing.T) {
+	t.Run("固定された gh 形式のスキルが変更されたとき、fix は固定したバージョンで再インストールする", func(t *testing.T) {
 		// Arrange
 		bareURL := initBareRepoWithTwoTags(t)
 		stubGitHubTransport(t, "h3y6e/fixture", bareURL)
@@ -321,7 +318,7 @@ func TestVerifyLockfileExcludedFiles(t *testing.T) {
 		"skills/alpha/metadata.json": "{}\n",
 	})
 
-	t.Run("when upstream holds files vercel-labs/skills leaves out, an untouched install verifies", func(t *testing.T) {
+	t.Run("上流に vercel-labs/skills が除外するファイルがあるとき、未変更のインストールは検証に通る", func(t *testing.T) {
 		t.Parallel()
 		// Arrange
 		dir := filepath.Join(t.TempDir(), ".agents", "skills")
@@ -336,7 +333,7 @@ func TestVerifyLockfileExcludedFiles(t *testing.T) {
 		}
 	})
 
-	t.Run("when such an install is changed, verify lists the changed file", func(t *testing.T) {
+	t.Run("そのようなインストールが変更されたとき、検証は変更されたファイルを列挙する", func(t *testing.T) {
 		t.Parallel()
 		// Arrange
 		dir := filepath.Join(t.TempDir(), ".agents", "skills")

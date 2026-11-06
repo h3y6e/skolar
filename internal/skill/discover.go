@@ -11,23 +11,23 @@ import (
 	"strings"
 )
 
-// DiscoveredSkill represents a skill found in an upstream repository.
+// DiscoveredSkill は上流のリポジトリで見つかったスキルを表す
 type DiscoveredSkill struct {
 	Name string
-	Path string // repo-relative directory of the skill, "." for the root
+	Path string // スキルのリポジトリからの相対ディレクトリ。ルートは "."
 	FS   fs.FS
-	// Default reports whether vercel-labs/skills or gh skill finds the skill
-	// without being told where to look.
+	// Default は vercel-labs/skills または gh skill が探す場所を指定されなくても
+	// そのスキルを見つけるかを表す
 	Default bool
 }
 
-// SkillMDPath returns the repo-relative path of the skill's SKILL.md, as
-// vercel-labs/skills records it in skillPath.
+// SkillMDPath はスキルの SKILL.md のリポジトリからの相対パスを返す。
+// vercel-labs/skills が skillPath に記録するものと同じである
 func (s DiscoveredSkill) SkillMDPath() string {
 	return path.Join(s.Path, "SKILL.md")
 }
 
-// Hash returns the skill's computedHash.
+// Hash はスキルの computedHash を返す
 func (s DiscoveredSkill) Hash() (string, error) {
 	return ComputeHash(s.FS)
 }
@@ -39,14 +39,14 @@ func subFS(fsys fs.FS, dir string) fs.FS {
 
 	sub, err := fs.Sub(fsys, dir)
 	if err != nil {
-		panic(err) // dir comes from walking fsys, so it is valid.
+		panic(err)
 	}
 
 	return sub
 }
 
-// lstat returns the type of name in fsys without following a final link,
-// which fs.Stat on os.DirFS would.
+// lstat は fsys の name の種別を末尾のリンクをたどらずに返す。
+// os.DirFS の fs.Stat はたどってしまう
 func lstat(fsys fs.FS, name string) (fs.FileMode, bool) {
 	if name == "." {
 		info, err := fs.Stat(fsys, ".")
@@ -77,11 +77,11 @@ func isRegular(fsys fs.FS, name string) bool {
 
 const skillsSegment = "skills"
 
-// skipDirs are never searched, as in vercel-labs/skills.
+// skipDirs は vercel-labs/skills と同じく探索しないディレクトリである
 var skipDirs = []string{".git", "node_modules", "dist", "build", "__pycache__"}
 
-// vercelContainers are the directories vercel-labs/skills searches three
-// levels deep before falling back to the whole repository.
+// vercelContainers は vercel-labs/skills が 3 階層の深さまで探索するディレクトリで、
+// 見つからなければリポジトリ全体の探索に移る
 var vercelContainers = []string{
 	"skills", "skills/.curated", "skills/.experimental", "skills/.system",
 	".agents/skills", ".claude/skills", ".cline/skills", ".codebuddy/skills", ".codex/skills",
@@ -93,14 +93,14 @@ var vercelContainers = []string{
 }
 
 type skillDir struct {
-	path        string // repo-relative, "." for the root
+	path        string // リポジトリからの相対パス。ルートは "."
 	name        string
 	vercelValid bool
 }
 
-// DiscoverSkills finds every skill in a repository that vercel-labs/skills
-// (with --full-depth) or gh skill (with hidden directories) can install, in
-// vercel-labs/skills' search order. Names may repeat across directories.
+// DiscoverSkills はリポジトリ内の vercel-labs/skills (--full-depth 付き) または
+// gh skill (隠しディレクトリ付き) がインストールできるスキルをすべて
+// vercel-labs/skills の探索順で見つける。名前はディレクトリをまたいで重複し得る
 func DiscoverSkills(repo fs.FS) ([]DiscoveredSkill, error) {
 	all, err := findSkillDirs(repo)
 	if err != nil {
@@ -158,8 +158,6 @@ func findSkillDirs(repo fs.FS) (map[string]skillDir, error) {
 	return dirs, err
 }
 
-// readSkillDir reads a skill's SKILL.md, reporting false when its
-// frontmatter is malformed, which vercel-labs/skills skips.
 func readSkillDir(data []byte, rel string) (skillDir, bool) {
 	raw, _, err := parseFrontmatter(string(data))
 	if err != nil {
@@ -183,8 +181,8 @@ func readSkillDir(data []byte, rel string) (skillDir, bool) {
 	return d, true
 }
 
-// vercelDefaults returns, in search order, the skill directories
-// vercel-labs/skills installs without --full-depth.
+// vercelDefaults は vercel-labs/skills が --full-depth なしでインストールする
+// スキルのディレクトリを探索順に返す
 func vercelDefaults(repo fs.FS, all map[string]skillDir) []string {
 	if root, ok := all["."]; ok && root.vercelValid {
 		return []string{"."}
@@ -246,8 +244,8 @@ func (s *vercelSearch) walk(dir string, depth, maxDepth int) {
 	}
 }
 
-// pluginSkillDirs returns the directories a Claude plugin manifest declares
-// skills in, as vercel-labs/skills reads them.
+// pluginSkillDirs は Claude プラグインのマニフェストがスキルの置き場として宣言する
+// ディレクトリを vercel-labs/skills と同じ読み方で返す
 func pluginSkillDirs(repo fs.FS) []string {
 	var dirs []string
 
@@ -291,8 +289,8 @@ func pluginSkillDirs(repo fs.FS) []string {
 	return dirs
 }
 
-// ghDefault reports whether gh skill install discovers a skill at the
-// repo-relative path p without --allow-hidden-dirs.
+// ghDefault は gh skill install がリポジトリからの相対パス p のスキルを
+// --allow-hidden-dirs なしで探索するかを返す
 func ghDefault(p string) bool {
 	if p == "." {
 		return false

@@ -22,10 +22,10 @@ func newRemoveCmd() *cobra.Command {
 	c := &cobra.Command{
 		Use:     "remove <skill>...",
 		Aliases: []string{"rm"},
-		Short:   "Remove installed skills (destructive)",
-		Long: `Remove installed skills (destructive).
+		Short:   "インストール済みのスキルを削除する (破壊的)",
+		Long: `インストール済みのスキルを削除する (破壊的)
 
-Globs like 'gke-*' match the names of installed skills.`,
+'spec-*' のような glob でもインストール済みのスキルを指定できる`,
 		Args: usageArgs(cobra.MatchAll(cobra.MinimumNArgs(1), func(_ *cobra.Command, args []string) error {
 			return skill.CheckPatterns(args)
 		})),
@@ -35,8 +35,8 @@ Globs like 'gke-*' match the names of installed skills.`,
 	}
 
 	bindDirFlag(c, &opts.dir)
-	c.Flags().BoolVarP(&opts.yes, "yes", "y", false, "Remove without confirmation")
-	c.Flags().BoolVar(&opts.dryRun, "dry-run", false, "Show the directories that would be removed")
+	c.Flags().BoolVarP(&opts.yes, "yes", "y", false, "確認なしで削除する")
+	c.Flags().BoolVar(&opts.dryRun, "dry-run", false, "削除されるディレクトリを表示する")
 
 	return c
 }
@@ -54,7 +54,7 @@ func runRemove(cmd *cobra.Command, patterns []string, opts removeOptions) error 
 		if len(matched) == 0 {
 			return &cliError{
 				code: codeSkillNotFound,
-				err:  fmt.Errorf("skill %q not found in %q", p, inv.layout.Dir),
+				err:  fmt.Errorf("スキル %q が %q に見つかりません", p, inv.layout.Dir),
 				fix:  "skolar list --dir " + inv.layout.Dir,
 			}
 		}
@@ -66,20 +66,20 @@ func runRemove(cmd *cobra.Command, patterns []string, opts removeOptions) error 
 	skillNames = slices.Compact(skillNames)
 
 	for _, name := range skillNames {
-		fmt.Fprintf(cmd.OutOrStdout(), "remove %s\n", inv.layout.SkillDir(name))
+		fmt.Fprintf(cmd.OutOrStdout(), "削除 %s\n", inv.layout.SkillDir(name))
 	}
 
 	if opts.dryRun {
 		return nil
 	}
 
-	if err := approve(cmd, opts.yes, "Remove these skills?"); err != nil {
+	if err := approve(cmd, opts.yes, "これらのスキルを削除しますか?"); err != nil {
 		return err
 	}
 
 	for _, name := range skillNames {
 		if err := os.RemoveAll(inv.layout.SkillDir(name)); err != nil {
-			return fmt.Errorf("remove skill directory %q: %w", name, err)
+			return fmt.Errorf("スキルディレクトリ %q の削除: %w", name, err)
 		}
 	}
 
@@ -92,7 +92,7 @@ func runRemove(cmd *cobra.Command, patterns []string, opts removeOptions) error 
 	}
 
 	if err := lock.WriteFile(inv.layout.LockPath(), inv.lockFile); err != nil {
-		return fmt.Errorf("write lockfile: %w", err)
+		return fmt.Errorf("ロックファイルの書き込み: %w", err)
 	}
 
 	return nil

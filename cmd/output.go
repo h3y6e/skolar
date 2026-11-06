@@ -15,7 +15,7 @@ import (
 	"golang.org/x/term"
 )
 
-// IsTTY reports whether stdin is a terminal. Replaceable for testing.
+// IsTTY は標準入力が端末かどうかを返す。テストで差し替えられる
 var IsTTY = func() bool {
 	return term.IsTerminal(int(os.Stdin.Fd()))
 }
@@ -26,7 +26,7 @@ func approve(cmd *cobra.Command, yes bool, question string) error {
 	}
 
 	if !IsTTY() {
-		return &cliError{codeConfirmationRequired, errors.New("confirmation required"), "re-run with --yes"}
+		return &cliError{codeConfirmationRequired, errors.New("確認が必要です"), "--yes を付けて再実行してください"}
 	}
 
 	fmt.Fprintf(cmd.ErrOrStderr(), "%s [y/N] ", question)
@@ -48,7 +48,7 @@ func approve(cmd *cobra.Command, yes bool, question string) error {
 		}
 
 		if a := strings.ToLower(strings.TrimSpace(answer)); a != "y" && a != "yes" {
-			return &cliError{code: codeDeclined, err: errors.New("declined")}
+			return &cliError{code: codeDeclined, err: errors.New("中止しました")}
 		}
 
 		return nil
@@ -69,7 +69,6 @@ func status(w io.Writer) func(string) {
 	}
 }
 
-// writeRecord writes the --json result record, with err as its error field, and returns err.
 func writeRecord(w io.Writer, key string, value any, err error) error {
 	rec := map[string]any{key: value}
 	if err != nil {
@@ -86,7 +85,6 @@ func writeRecord(w io.Writer, key string, value any, err error) error {
 	return errors.Join(err, writeErr)
 }
 
-// updateResult is an update --json result; renaming or retyping a field is breaking.
 type updateResult struct {
 	SkillName    string       `json:"skillName"`
 	Status       skill.Status `json:"status"`
@@ -124,12 +122,7 @@ type diffStat struct {
 }
 
 func (d diffStat) String() string {
-	unit := "files"
-	if d.Files == 1 {
-		unit = "file"
-	}
-
-	return fmt.Sprintf("+%d -%d (%d %s)", d.Added, d.Deleted, d.Files, unit)
+	return fmt.Sprintf("+%d -%d (%d ファイル)", d.Added, d.Deleted, d.Files)
 }
 
 func shortHash(h string) string {
