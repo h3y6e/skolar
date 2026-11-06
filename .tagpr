@@ -5,4 +5,4 @@
 	release = draft
 	changelog = false
 	calendarVersioning = YYYY.MM.MICRO
-	command = "nix develop -c bash -euo pipefail -c 'go mod tidy && go test -tags interop -count 1 -json ./interop | go run ./interop/figure compat >docs/compat.svg && go test -tags interop -run ^$ -bench . -benchtime 1x -count 5 ./interop | go run ./interop/figure bench >docs/bench.svg && git add go.mod go.sum docs'"
+	command = "mise run prerelease"

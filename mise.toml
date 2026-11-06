@@ -1,0 +1,41 @@
+[tools]
+"go:golang.org/x/vuln/cmd/govulncheck" = "1.9.0"
+gh = "2.103.3"
+go = "1.27.3"
+golangci-lint = "2.15.0"
+node = "26.13.0"
+"npm:skills" = "1.7.1"
+usage = "7.2.0"
+
+[tasks.build]
+run = 'go build -o skolar .'
+
+[tasks.check]
+run = [
+  'golangci-lint fmt --diff',
+  'golangci-lint run',
+  'go fix -diff ./...',
+  'govulncheck ./...',
+]
+
+[tasks.fmt]
+run = 'golangci-lint fmt'
+
+[tasks.test]
+run = [
+  'go test ./...',
+  "go test -run '^$' -bench . -benchtime 1x ./...",
+]
+
+[tasks.interop]
+run = 'go test -tags interop -v ./interop/...'
+
+[tasks.prerelease]
+shell = 'bash -euo pipefail -c'
+run = [
+  'go mod tidy',
+  'go test -tags interop -count 1 -json ./interop | go run ./interop/figure compat > docs/compat.svg',
+  "go test -tags interop -run '^$' -bench . -benchtime 1x -count 5 ./interop | go run ./interop/figure bench > docs/bench.svg",
+  'go run -buildvcs=false -ldflags="-X=main.version=${TAGPR_NEXT_VERSION#v}" . --usage-spec | usage generate markdown -f - --indented-blocks-to-code-fences > docs/usage.md',
+  'git add go.mod go.sum docs',
+]

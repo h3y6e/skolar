@@ -1,6 +1,6 @@
 //go:build interop
 
-// Package interop は公開フィクスチャリポジトリを使い、flake.lock で固定した
+// Package interop は公開フィクスチャリポジトリを使い、mise.toml で固定した
 // 上流の CLI (`skills` としての vercel-labs/skills と `gh skill`) に対して skolar を実行する
 package interop
 
