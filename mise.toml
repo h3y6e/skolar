@@ -1,5 +1,4 @@
 [tools]
-"go:golang.org/x/vuln/cmd/govulncheck" = "1.9.0"
 gh = "2.103.3"
 go = "1.27.3"
 golangci-lint = "2.15.0"
@@ -15,7 +14,7 @@ run = [
   'golangci-lint fmt --diff',
   'golangci-lint run',
   'go fix -diff ./...',
-  'govulncheck ./...',
+  'go tool govulncheck ./...',
 ]
 
 [tasks.fmt]
