@@ -164,7 +164,7 @@ url = "https://nodejs.org/dist/v26.13.0/node-v26.13.0-win-x64.zip"
 
 [[tools."npm:skills"]]
 version = "1.7.1"
-aube = { path = ".mise/locks/npm-skills/1.7.1", digest = "sha256:a8d50909b980650eb66ef5df20bb282de3e3267a1466db66bb4aab323cf81e39" }
+aube = { path = ".mise/locks/npm-skills/1.7.1", digest = "sha256:96465ab1ec01ebe6792ac7e85e8cc31ef74ef1a254de0b315356eea8b4244e74" }
 backend = "npm:skills"
 specifiers = ["1.7.1"]
 
