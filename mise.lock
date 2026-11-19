@@ -163,13 +163,10 @@ checksum = "sha256:dcc60d59a0746999f99064a01c020445d54d84228c691cdbf25b49ac3b591
 url = "https://nodejs.org/dist/v26.13.0/node-v26.13.0-win-x64.zip"
 
 [[tools."npm:skills"]]
-version = "1.7.1"
-aube = { path = ".mise/locks/npm-skills/1.7.1", digest = "sha256:a8d50909b980650eb66ef5df20bb282de3e3267a1466db66bb4aab323cf81e39" }
+version = "1.9.0"
+aube = { path = ".mise/locks/npm-skills/1.9.0", digest = "sha256:7986f7572c57b5b5ca6407f53294cd4f7cda8fa5c8b052c82b24cc2a492c01ac" }
 backend = "npm:skills"
-specifiers = ["1.7.1"]
-
-[tools."npm:skills".provenance]
-repository = "github.com/vercel-labs/skills"
+specifiers = ["1.9.0"]
 
 [[tools.usage]]
 version = "7.2.0"
