@@ -4,7 +4,7 @@ go = "1.27.3"
 golangci-lint = "2.15.0"
 node = "26.13.0"
 "npm:skills" = "1.7.1"
-usage = "7.2.0"
+usage = "7.4.0"
 
 [tasks.build]
 run = 'go build -o skolar .'
